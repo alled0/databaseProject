@@ -1,0 +1,16 @@
+.form-container {
+    padding: 20px;
+  }
+  
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Responsive grid */
+    gap: 16px; /* Spacing between grid items */
+  }
+  
+  .grid-item {
+    background-color: lightgray;
+    padding: 16px;
+    border-radius: 8px;
+  }
+  
