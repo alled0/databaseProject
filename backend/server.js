@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const db = require('./database');
+require('dotenv').config();
 
 const app = express();
 const PORT = 5000;
@@ -10,10 +11,13 @@ const PORT = 5000;
 app.use(cors());
 app.use(bodyParser.json());
 
+
+
 // Test Route
 app.get('/', (req, res) => {
   res.send('Saudi Railways Backend');
 });
+
 
 // Get all trains
 app.get('/trains', async (req, res) => {
@@ -134,6 +138,7 @@ app.post('/addPayment', async (req, res) => {
     res.status(500).json({ "error": err.message });
   }
 });
+
 
 // Start the server
 app.listen(PORT, () => {
