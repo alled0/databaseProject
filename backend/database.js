@@ -4,10 +4,7 @@ require("dotenv").config({ path: path.resolve(__dirname, ".env") }); // Then use
 const mysql = require("mysql2");
 const fs = require("fs");
 
-console.log("DB Configuration:", {
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
+
 
 // Create a connection pool with multipleStatements enabled
 const pool = mysql.createPool({
@@ -58,4 +55,4 @@ const initDB = async () => {
 // Call the initDB function to initialize the schema and insert data
 initDB();
 
-module.exports = promisePool;
+module.exports = promisePool; 

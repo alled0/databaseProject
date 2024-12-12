@@ -19,11 +19,12 @@ INSERT INTO Station (name, Location) VALUES
 ('West Station', 'Westside');
 
 -- Insert into Staff Table
-INSERT INTO Staff (Name, ContactInfo, Role) VALUES
-('Ahmed Ali', 'ahmed.ali@example.com', 'Conductor'),
-('Sara Hassan', 'sara.hassan@example.com', 'Engineer'),
-('Mohammed Youssef', 'mohammed.youssef@example.com', 'Ticket Agent'),
-('Laila Karim', 'laila.karim@example.com', 'Station Manager');
+INSERT INTO Staff (Name, ContactInfo, Role, email, password) VALUES
+('Ahmed Ali', 'ahmed.ali@example.com', 'Conductor', 'staff1@example.com', 'staff123'),
+('Sara Hassan', 'sara.hassan@example.com', 'Engineer', 'staff2@example.com', 'staff456'),
+('Mohammed Youssef', 'mohammed.youssef@example.com', 'Ticket Agent', 'staff3@example.com', 'staff789'),
+('Laila Karim', 'laila.karim@example.com', 'Station Manager', 'staff4@example.com', 'staff321');
+
 
 -- Insert into Track Table
 INSERT INTO Track (originStation, destinationStation) VALUES
@@ -46,11 +47,12 @@ INSERT INTO Schedule (TrainID, StationID, Stop_Sequence, Arrival_Time, Departure
 (4, 5, 2, '07:00:00', '07:05:00');
 
 -- Insert into Passenger Table
-INSERT INTO Passenger (Name, ContactInfo, IDDocument, LoyaltyMiles, LoyaltyStat) VALUES
-('John Doe', 'john.doe@example.com', 'ID123456', 1500, 'Silver'),
-('Jane Smith', 'jane.smith@example.com', 'ID654321', 3000, 'Gold'),
-('Ali Hassan', 'ali.hassan@example.com', 'ID112233', 500, 'Green'),
-('Maria Garcia', 'maria.garcia@example.com', 'ID445566', 2500, 'Silver');
+INSERT INTO Passenger (Name, ContactInfo, IDDocument, LoyaltyMiles, LoyaltyStat, email, password) VALUES
+('John Doe', 'john.doe@example.com', 'ID123456', 1500, 'Silver', 'passenger1@example.com', 'pass123'),
+('Jane Smith', 'jane.smith@example.com', 'ID654321', 3000, 'Gold', 'passenger2@example.com', 'pass456'),
+('Ali Hassan', 'ali.hassan@example.com', 'ID112233', 500, 'Green', 'passenger3@example.com', 'pass789'),
+('Maria Garcia', 'maria.garcia@example.com', 'ID445566', 2500, 'Silver', 'passenger4@example.com', 'pass321');
+
 
 -- Insert into Dependent Table
 INSERT INTO Dependent (RelationToPassenger, Passenger_ID, Name) VALUES

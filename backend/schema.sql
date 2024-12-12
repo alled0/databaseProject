@@ -54,7 +54,9 @@ CREATE TABLE Passenger (
   ContactInfo VARCHAR(100),
   IDDocument VARCHAR(100),
   LoyaltyMiles INT DEFAULT 0,
-  LoyaltyStat ENUM('Green', 'Silver', 'Gold') DEFAULT 'Green'
+  LoyaltyStat ENUM('Green', 'Silver', 'Gold') DEFAULT 'Green',
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL
 );
 
 -- Dependent Table
@@ -99,7 +101,9 @@ CREATE TABLE Staff (
   StaffID INT AUTO_INCREMENT PRIMARY KEY,
   Name VARCHAR(100) NOT NULL,
   ContactInfo VARCHAR(100),
-  Role VARCHAR(50)
+  Role VARCHAR(50),
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL
 );
 
 -- WaitingList Table
