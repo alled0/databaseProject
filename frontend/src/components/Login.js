@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; 
-import "../style/Login.css"; 
+import { useNavigate } from "react-router-dom";
+import "../style/Login.css";
 
-const Login = () => {
+const Login = ({ onLogin }) => {
   const [form, setForm] = useState({
     email: "",
     password: "",
   });
   const [error, setError] = useState("");
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -41,10 +41,11 @@ const Login = () => {
     }
 
     setError("");
+    onLogin(user.role); // Set role in parent App component
     if (user.role === "Passenger") {
-      navigate("/searchtrain"); 
+      navigate("/searchtrain");
     } else if (user.role === "Admin") {
-      navigate("/admin-dashboard"); // TODO navigate to admin page
+      navigate("/manage-reservations");
     }
   };
 
