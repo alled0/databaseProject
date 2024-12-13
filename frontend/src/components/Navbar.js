@@ -1,3 +1,4 @@
+//navbar.js
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -6,12 +7,14 @@ const Navbar = ({ role, onLogout }) => {
   const passengerLinks = [
     { path: "/searchtrain", label: "Search Trains" },
     { path: "/book", label: "Book Seat" },
+    { path: "/reports", label: "Reports" },
   ];
 
   const adminLinks = [
     { path: "/manage-reservations", label: "Manage Reservations" },
     { path: "/assign-staff", label: "Assign Staff" },
     { path: "/promote-passenger", label: "Promote Passenger" },
+    { path: "/reports", label: "Reports" },
   ];
 
   // Determine which links to render
@@ -23,6 +26,8 @@ const Navbar = ({ role, onLogout }) => {
     onLogout();
     navigate("/"); // Redirect to login page
   };
+
+  
 
   return (
     <nav style={styles.nav}>
