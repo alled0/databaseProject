@@ -227,6 +227,132 @@ app.post("/completePayment", async (req, res) => {
   }
 });
 
+// Manage Reservations
+app.post("/manageReservations", async (req, res) => {
+  const { action, reservationID, passengerEmail, details } = req.body;
+
+  if (!action) {
+    return res.status(400).json({ error: "Action is required." });
+  }
+
+  const connection = await db.getConnection();
+
+  try {
+    if (action === "Add") {
+      // Logic to Add a Reservation
+      const { Date, FromStation, ToStation, CoachType, SeatNumber } = details;
+
+      if (
+        !Date ||
+        !FromStation ||
+        !ToStation ||
+        !CoachType ||
+        !SeatNumber ||
+        !passengerEmail
+      ) {
+        return res.status(400).json({
+          error:
+            "Date, FromStation, ToStation, CoachType, SeatNumber, and Passenger Email are required.",
+        });
+      }
+
+      // Lookup PassengerID by Email
+      const [passenger] = await connection.query(
+        "SELECT PassengerID FROM Passenger WHERE email = ?",
+        [passengerEmail]
+      );
+      if (passenger.length === 0) {
+        return res.status(400).json({ error: "Invalid passenger email." });
+      }
+      const PassengerID = passenger[0].PassengerID;
+
+      const sql = `
+        INSERT INTO Reservation (Date, FromStation, ToStation, CoachType, SeatNumber, PassengerID)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `;
+      const [result] = await connection.query(sql, [
+        Date,
+        FromStation,
+        ToStation,
+        CoachType,
+        SeatNumber,
+        PassengerID,
+      ]);
+      return res.json({
+        message: "Reservation added successfully.",
+        reservationID: result.insertId,
+      });
+    } else if (action === "Edit") {
+      // Logic to Edit a Reservation
+      const { Date, FromStation, ToStation, CoachType, SeatNumber } = details;
+
+      if (!reservationID) {
+        return res.status(400).json({
+          error: "Reservation ID is required for editing.",
+        });
+      }
+
+      const sql = `
+        UPDATE Reservation
+        SET
+          Date = COALESCE(?, Date),
+          FromStation = COALESCE(?, FromStation),
+          ToStation = COALESCE(?, ToStation),
+          CoachType = COALESCE(?, CoachType),
+          SeatNumber = COALESCE(?, SeatNumber)
+        WHERE ReservationID = ?
+      `;
+      const [result] = await connection.query(sql, [
+        Date,
+        FromStation,
+        ToStation,
+        CoachType,
+        SeatNumber,
+        reservationID,
+      ]);
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Reservation not found." });
+      }
+      return res.json({ message: "Reservation updated successfully." });
+    } else if (action === "Cancel") {
+      // Logic to Cancel a Reservation
+      if (!reservationID) {
+        return res
+          .status(400)
+          .json({ error: "Reservation ID is required for cancellation." });
+      }
+
+      // Ensure related data (e.g., Payment) is handled
+      const deletePayment = `
+        DELETE FROM Payment WHERE ResID = ?
+      `;
+      await connection.query(deletePayment, [reservationID]);
+
+      const deleteReservation = `
+        DELETE FROM Reservation WHERE ReservationID = ?
+      `;
+      const [result] = await connection.query(deleteReservation, [
+        reservationID,
+      ]);
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Reservation not found." });
+      }
+      return res.json({ message: "Reservation cancelled successfully." });
+    } else {
+      return res.status(400).json({
+        error: "Invalid action. Allowed actions are Add, Edit, Cancel.",
+      });
+    }
+  } catch (err) {
+    console.error("Error managing reservation:", err);
+    res
+      .status(500)
+      .json({ error: "A server error occurred. Please try again later." });
+  } finally {
+    connection.release();
+  }
+});
+
 // Login
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
