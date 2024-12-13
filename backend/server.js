@@ -59,7 +59,6 @@ app.get("/searchTrains", async (req, res) => {
   }
 });
 
-// Book a seat (Create Reservation)
 app.post("/bookSeat", async (req, res) => {
   const {
     TrainID,
@@ -68,12 +67,11 @@ app.post("/bookSeat", async (req, res) => {
     ToStation,
     CoachType,
     SeatNumber,
-    PassengerName,
-    ContactInfo,
-    IDDocument,
-    LuggageDetails, // Assuming LuggageDetails is stored elsewhere or handled differently
+    LuggageDetails,
+    email, // Email of the logged-in user
   } = req.body;
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (
     !TrainID ||
     !Date ||
@@ -81,24 +79,61 @@ app.post("/bookSeat", async (req, res) => {
     !ToStation ||
     !CoachType ||
     !SeatNumber ||
-    !PassengerName ||
-    !IDDocument
+    !email ||
+    !emailRegex.test(email)
   ) {
-    return res.status(400).json({ error: "Missing required fields" });
+    return res.status(400).json({
+      error: "Missing required fields or invalid email format",
+    });
   }
 
   const connection = await db.getConnection();
   try {
-    await connection.beginTransaction();
+    // Validate TrainID
+    const [train] = await connection.query(
+      "SELECT TrainID FROM Train WHERE TrainID = ?",
+      [TrainID]
+    );
+    if (train.length === 0) {
+      return res.status(400).json({
+        error: "Invalid TrainID. Please select a valid train.",
+      });
+    }
 
-    // Insert Passenger
-    const insertPassenger = `INSERT INTO Passenger (Name, ContactInfo, IDDocument) VALUES (?, ?, ?)`;
-    const [passengerResult] = await connection.query(insertPassenger, [
-      PassengerName,
-      ContactInfo,
-      IDDocument,
-    ]);
-    const PassengerID = passengerResult.insertId;
+    // Validate FromStation and ToStation
+    const [fromStation] = await connection.query(
+      "SELECT StationID FROM Station WHERE StationID = ?",
+      [FromStation]
+    );
+    if (fromStation.length === 0) {
+      return res.status(400).json({
+        error: "Invalid FromStation. Please select a valid station.",
+      });
+    }
+
+    const [toStation] = await connection.query(
+      "SELECT StationID FROM Station WHERE StationID = ?",
+      [ToStation]
+    );
+    if (toStation.length === 0) {
+      return res.status(400).json({
+        error: "Invalid ToStation. Please select a valid station.",
+      });
+    }
+
+    // Fetch PassengerID using email
+    const [passenger] = await connection.query(
+      "SELECT PassengerID FROM Passenger WHERE email = ?",
+      [email]
+    );
+    if (passenger.length === 0) {
+      return res.status(400).json({
+        error: "Invalid email. Please log in with a registered account.",
+      });
+    }
+    const PassengerID = passenger[0].PassengerID;
+
+    await connection.beginTransaction();
 
     // Insert Reservation
     const insertReservation = `
@@ -116,7 +151,7 @@ app.post("/bookSeat", async (req, res) => {
     ]);
     const ReservationID = reservationResult.insertId;
 
-    // For simplicity, setting Payment_Status as 'Pending'
+    // Insert Payment
     const insertPayment = `
       INSERT INTO Payment (ResID, Date, VAT, Amount, Payment_Status)
       VALUES (?, NOW(), 15.00, 100.00, 'Pending')
@@ -127,19 +162,24 @@ app.post("/bookSeat", async (req, res) => {
     const PaymentID = paymentResult.insertId;
 
     // Update Reservation with PaymentID
-    const updateReservation = `UPDATE Reservation SET PaymentID = ? WHERE ReservationID = ?`;
+    const updateReservation = `
+      UPDATE Reservation SET PaymentID = ? WHERE ReservationID = ?
+    `;
     await connection.query(updateReservation, [PaymentID, ReservationID]);
 
     await connection.commit();
-
     res.json({
       message: "Reservation successful",
-      ReservationID: ReservationID,
-      PaymentID: PaymentID,
+      ReservationID,
     });
   } catch (err) {
+    console.error("Error during booking process:", err);
+
     await connection.rollback();
-    res.status(500).json({ error: err.message });
+
+    res.status(500).json({
+      error: "A server error occurred. Please try again later.",
+    });
   } finally {
     connection.release();
   }
@@ -162,8 +202,6 @@ app.post("/addPayment", async (req, res) => {
 
 // Login
 app.post("/api/login", async (req, res) => {
-
-
   const { email, password } = req.body;
 
   if (!email || !password) {
