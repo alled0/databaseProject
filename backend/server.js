@@ -4,62 +4,13 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const db = require("./database");
 require("dotenv").config();
-// const nodemailer = require("nodemailer");
-// const cron = require("node-cron");
+
 
 const app = express();
 const PORT = 4000;
 
 app.use(cors());
 app.use(bodyParser.json());
-
-// // Set up Nodemailer transporter
-// const transporter = nodemailer.createTransport({
-//   service: "gmail",
-//   auth: {
-//     user: "your_email@gmail.com", // Replace with your email
-//     pass: "your_email_password", // Replace with your password
-//   },
-// });
-
-// // Function to send email reminders
-// const sendUnpaidReminders = async () => {
-//   const [rows] = await db.query(`
-//       SELECT Passenger.Email, Passenger.Name, Reservation.ReservationID
-//       FROM Reservation
-//       JOIN Passenger ON Reservation.PassengerID = Passenger.PassengerID
-//       WHERE Reservation.Paid = 0
-//   `);
-
-//   rows.forEach((row) => {
-//     const mailOptions = {
-//       from: "your_email@gmail.com",
-//       to: row.Email,
-//       subject: "Payment Reminder",
-//       text: `Dear ${row.Name}, please complete the payment for your reservation (ID: ${row.ReservationID}).`,
-//     };
-
-//     transporter.sendMail(mailOptions, (error, info) => {
-//       if (error) {
-//         console.error(`Failed to send email to ${row.Email}:`, error);
-//       } else {
-//         console.log(`Email sent to ${row.Email}:`, info.response);
-//       }
-//     });
-//   });
-// };
-
-// // Schedule the function to run daily at 10pm
-// cron.schedule("10 * * *", () => {
-//   console.log("Sending email reminders...");
-//   sendEmailReminders();
-// });
-
-// // Test Route
-// app.get("/", (req, res) => {
-//   res.send("Saudi Railways Backend");
-// });
-
 
 // Get all trains
 app.get("/trains", async (req, res) => {
@@ -799,7 +750,6 @@ app.get("/reports/reservations/:passengerID", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 
 // Start the server
