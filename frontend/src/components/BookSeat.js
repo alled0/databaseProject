@@ -1,5 +1,5 @@
-// frontend/src/components/BookSeat.js
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const BookSeat = () => {
@@ -11,15 +11,16 @@ const BookSeat = () => {
     CoachType: "Economy",
     SeatNumber: "",
     PassengerName: "",
-    ContactInfo: "",
     IDDocument: "",
     LuggageDetails: "",
-    email: "", // Added email field
+    email: "", // Email serves as contact info
   });
   const [stations, setStations] = useState([]);
   const [trains, setTrains] = useState([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [reservationID, setReservationID] = useState(null); // Store ReservationID
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios
@@ -80,22 +81,10 @@ const BookSeat = () => {
       .post("http://localhost:4000/bookSeat", form)
       .then((response) => {
         if (response.status === 200) {
+          setReservationID(response.data.ReservationID); // Store ReservationID
           setMessage(
-            `Reservation Successful! Your Reservation ID is ${response.data.ReservationID}`
+            `Reservation Successful! Your Reservation ID is ${response.data.ReservationID}. Please proceed to payment.`
           );
-          setForm({
-            TrainID: "",
-            Date: "",
-            FromStation: "",
-            ToStation: "",
-            CoachType: "Economy",
-            SeatNumber: "",
-            PassengerName: "",
-            ContactInfo: "",
-            IDDocument: "",
-            LuggageDetails: "",
-            email: "", // Reset email field
-          });
         } else {
           setError("Reservation failed. Please try again later.");
         }
@@ -106,11 +95,31 @@ const BookSeat = () => {
       });
   };
 
+  const goToPayment = () => {
+    console.log(
+      "Navigating to payment page with Reservation ID:",
+      reservationID
+    );
+
+    if (reservationID) {
+      navigate(`/payment/${reservationID}`); // Navigate to the payment page
+    }
+  };
+
   return (
     <div style={styles.container}>
       <h3 style={styles.heading}>Book a Seat</h3>
       {error && <p style={styles.error}>{error}</p>}
-      {message && <p style={styles.success}>{message}</p>}
+      {message && (
+        <div>
+          <p style={styles.success}>{message}</p>
+          {reservationID && (
+            <button onClick={goToPayment} style={styles.paymentButton}>
+              Proceed to Payment
+            </button>
+          )}
+        </div>
+      )}
       <div style={styles.form}>
         <div style={styles.formGroup}>
           <label style={styles.label}>Train:</label>
@@ -200,7 +209,6 @@ const BookSeat = () => {
             name="PassengerName"
             value={form.PassengerName}
             onChange={handleChange}
-            placeholder="Omar"
             style={styles.input}
           />
         </div>
@@ -215,18 +223,6 @@ const BookSeat = () => {
             style={styles.input}
           />
         </div>
-
-        {/* <div style={styles.formGroup}>
-          <label style={styles.label}>Contact Info:</label>
-          <input
-            type="text"
-            name="ContactInfo"
-            value={form.ContactInfo}
-            onChange={handleChange}
-            placeholder="Email or Phone"
-            style={styles.input}
-          />
-        </div> */}
         <div style={styles.formGroup}>
           <label style={styles.label}>ID Document:</label>
           <input
@@ -308,8 +304,15 @@ const styles = {
     cursor: "pointer",
     transition: "background-color 0.3s",
   },
-  buttonHover: {
-    backgroundColor: "#45a049",
+  paymentButton: {
+    padding: "10px 15px",
+    backgroundColor: "#FF9800",
+    color: "white",
+    border: "none",
+    borderRadius: "5px",
+    fontSize: "16px",
+    cursor: "pointer",
+    marginTop: "10px",
   },
   error: {
     color: "red",

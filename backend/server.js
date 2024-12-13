@@ -200,6 +200,33 @@ app.post("/addPayment", async (req, res) => {
   }
 });
 
+app.post("/completePayment", async (req, res) => {
+  const { reservationID } = req.body;
+
+  const connection = await db.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    const updatePayment = `
+      UPDATE Payment SET Payment_Status = 'Completed' WHERE ResID = ?
+    `;
+    const [result] = await connection.query(updatePayment, [reservationID]);
+
+    if (result.affectedRows === 0) {
+      throw new Error("No payment found for the given reservation ID.");
+    }
+
+    await connection.commit();
+    res.status(200).json({ message: "Payment successful" });
+  } catch (err) {
+    console.error("Payment error:", err);
+    await connection.rollback();
+    res.status(500).json({ error: err.message });
+  } finally {
+    connection.release();
+  }
+});
+
 // Login
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;

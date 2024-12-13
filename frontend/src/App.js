@@ -7,6 +7,7 @@ import Login from "./components/Login";
 import ManageReservations from "./components/ManageReservations";
 import AssignStaff from "./components/AssignStaff";
 import PromotePassenger from "./components/PromotePassenger";
+import Payment from "./components/Payment";
 
 function App() {
   // Simulate user role (change between "Passenger" and "Admin" to test)
@@ -30,6 +31,7 @@ function App() {
             <>
               <Route path="/searchtrain" element={<SearchTrains />} />
               <Route path="/book" element={<BookSeat />} />
+              <Route path="/payment/:reservationID" element={<Payment />} />
             </>
           )}
           {role === "Admin" && (
