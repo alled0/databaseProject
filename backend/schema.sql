@@ -47,6 +47,29 @@ CREATE TABLE Schedule (
   FOREIGN KEY (StationID) REFERENCES Station(StationID)
 );
 
+
+-- DELIMITER $$
+
+-- CREATE TRIGGER send_reminder_message
+-- AFTER INSERT ON Schedule
+-- FOR EACH ROW
+-- BEGIN
+--     DECLARE current_time DATETIME;
+--     SET current_time = NOW();
+
+--     -- Check if the train departs in 3 hours
+--     IF TIMESTAMPDIFF(HOUR, current_time, NEW.Departure_Time) = 3 THEN
+--         INSERT INTO Notifications (PassengerID, Message)
+--         SELECT Reservation.PassengerID, 
+--                CONCAT('Reminder: Your train (ID: ', NEW.TrainID, ') departs in 3 hours.')
+--         FROM Reservation
+--         WHERE Reservation.TrainID = NEW.TrainID;
+--     END IF;
+-- END$$
+
+-- DELIMITER;
+
+
 -- Passenger Table
 CREATE TABLE Passenger (
   PassengerID INT AUTO_INCREMENT PRIMARY KEY,
