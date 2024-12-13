@@ -1,31 +1,53 @@
 import React, { useState } from "react";
+import axios from "axios";
 import "../style/Admin.css"; // Import shared CSS file
 
 const AssignStaff = () => {
   const [form, setForm] = useState({
     trainID: "",
-    date: "",
     staffID: "",
     role: "Driver",
   });
 
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setMessage(""); // Clear success message on change
+    setError(""); // Clear error message on change
   };
 
-  const handleAssign = () => {
-    if (!form.trainID || !form.date || !form.staffID) {
-      alert("Please fill all fields.");
+  const handleAssign = async () => {
+    if (!form.trainID || !form.staffID) {
+      setError("Train ID and Staff ID are required.");
       return;
     }
-    console.log("Assigning staff to train:", form);
-    alert("Staff assigned successfully!");
-    setForm({ trainID: "", date: "", staffID: "", role: "Driver" });
+
+    try {
+      const response = await axios.post(
+        "http://localhost:4000/assignStaff",
+        form
+      );
+
+      if (response.status === 200) {
+        setMessage(response.data.message);
+        setForm({ trainID: "", staffID: "", role: "Driver" });
+      } else {
+        setError("Failed to assign staff. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error assigning staff:", error);
+      setError(error.response?.data?.error || "A server error occurred.");
+    }
   };
 
   return (
     <div className="container">
       <h2>Assign Staff to Train</h2>
+      {message && <p className="success">{message}</p>}
+      {error && <p className="error">{error}</p>}
+
       <div className="form-group">
         <label>Train ID:</label>
         <input
@@ -34,16 +56,7 @@ const AssignStaff = () => {
           value={form.trainID}
           onChange={handleChange}
           className="input"
-        />
-      </div>
-      <div className="form-group">
-        <label>Date:</label>
-        <input
-          type="date"
-          name="date"
-          value={form.date}
-          onChange={handleChange}
-          className="input"
+          placeholder="Enter Train ID"
         />
       </div>
       <div className="form-group">
@@ -54,6 +67,7 @@ const AssignStaff = () => {
           value={form.staffID}
           onChange={handleChange}
           className="input"
+          placeholder="Enter Staff ID"
         />
       </div>
       <div className="form-group">

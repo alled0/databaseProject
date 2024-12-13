@@ -1,49 +1,69 @@
 import React, { useState } from "react";
-import "../style/Admin.css"; // Import shared CSS file
+import "../style/Admin.css";
 
 const PromotePassenger = () => {
-  const [form, setForm] = useState({
-    passengerID: "",
-    reservationID: "",
-  });
+  const [passengerID, setPassengerID] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [error, setError] = useState("");
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handlePromote = () => {
-    if (!form.passengerID || !form.reservationID) {
-      alert("Please provide both Passenger ID and Reservation ID.");
+  const handlePromote = async () => {
+    if (!passengerID) {
+      alert("Passenger ID is required.");
       return;
     }
-    console.log("Promoting waitlisted passenger:", form);
-    alert("Passenger promoted successfully!");
-    setForm({ passengerID: "", reservationID: "" });
+
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      const response = await fetch("http://localhost:4000/promotePassenger", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ passengerID }),
+      });
+
+      const data = await response.json();
+      if (response.status === 200) {
+        const {
+          TrainID,
+          English_name,
+          Arabic_name,
+          Date,
+          FromStation,
+          ToStation,
+        } = data.trainDetails;
+        setSuccessMessage(
+          `Passenger promoted successfully! Train Details: Train ID: ${TrainID}, 
+           English Name: ${English_name}, Arabic Name: ${Arabic_name}, 
+           Date: ${Date}, From Station: ${FromStation}, To Station: ${ToStation}`
+        );
+        setPassengerID("");
+      } else {
+        setError(data.error || "Failed to promote passenger.");
+      }
+    } catch (err) {
+      console.error("Error promoting passenger:", err);
+      setError("A server error occurred. Please try again later.");
+    }
   };
 
   return (
     <div className="container">
       <h2>Promote Waitlisted Passenger</h2>
+      {error && <p className="error">{error}</p>}
+      {successMessage && <p className="success">{successMessage}</p>}
+
       <div className="form-group">
         <label>Passenger ID:</label>
         <input
           type="text"
-          name="passengerID"
-          value={form.passengerID}
-          onChange={handleChange}
+          value={passengerID}
+          onChange={(e) => setPassengerID(e.target.value)}
           className="input"
+          placeholder="Enter Passenger ID"
         />
       </div>
-      <div className="form-group">
-        <label>Reservation ID:</label>
-        <input
-          type="text"
-          name="reservationID"
-          value={form.reservationID}
-          onChange={handleChange}
-          className="input"
-        />
-      </div>
+
       <button onClick={handlePromote} className="button">
         Promote Passenger
       </button>

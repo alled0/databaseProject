@@ -228,123 +228,149 @@ app.post("/completePayment", async (req, res) => {
 });
 
 // Manage Reservations
-app.post("/manageReservations", async (req, res) => {
-  const { action, reservationID, passengerEmail, details } = req.body;
+app.post("/assignStaff", async (req, res) => {
+  const { trainID, staffID, role } = req.body;
 
-  if (!action) {
-    return res.status(400).json({ error: "Action is required." });
+  if (!trainID || !staffID || !role) {
+    return res
+      .status(400)
+      .json({ error: "Train ID, Staff ID, and Role are required." });
   }
 
   const connection = await db.getConnection();
-
   try {
-    if (action === "Add") {
-      // Logic to Add a Reservation
-      const { Date, FromStation, ToStation, CoachType, SeatNumber } = details;
+    await connection.beginTransaction();
 
-      if (
-        !Date ||
-        !FromStation ||
-        !ToStation ||
-        !CoachType ||
-        !SeatNumber ||
-        !passengerEmail
-      ) {
-        return res.status(400).json({
-          error:
-            "Date, FromStation, ToStation, CoachType, SeatNumber, and Passenger Email are required.",
-        });
-      }
-
-      // Lookup PassengerID by Email
-      const [passenger] = await connection.query(
-        "SELECT PassengerID FROM Passenger WHERE email = ?",
-        [passengerEmail]
-      );
-      if (passenger.length === 0) {
-        return res.status(400).json({ error: "Invalid passenger email." });
-      }
-      const PassengerID = passenger[0].PassengerID;
-
-      const sql = `
-        INSERT INTO Reservation (Date, FromStation, ToStation, CoachType, SeatNumber, PassengerID)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `;
-      const [result] = await connection.query(sql, [
-        Date,
-        FromStation,
-        ToStation,
-        CoachType,
-        SeatNumber,
-        PassengerID,
-      ]);
-      return res.json({
-        message: "Reservation added successfully.",
-        reservationID: result.insertId,
-      });
-    } else if (action === "Edit") {
-      // Logic to Edit a Reservation
-      const { Date, FromStation, ToStation, CoachType, SeatNumber } = details;
-
-      if (!reservationID) {
-        return res.status(400).json({
-          error: "Reservation ID is required for editing.",
-        });
-      }
-
-      const sql = `
-        UPDATE Reservation
-        SET
-          Date = COALESCE(?, Date),
-          FromStation = COALESCE(?, FromStation),
-          ToStation = COALESCE(?, ToStation),
-          CoachType = COALESCE(?, CoachType),
-          SeatNumber = COALESCE(?, SeatNumber)
-        WHERE ReservationID = ?
-      `;
-      const [result] = await connection.query(sql, [
-        Date,
-        FromStation,
-        ToStation,
-        CoachType,
-        SeatNumber,
-        reservationID,
-      ]);
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ error: "Reservation not found." });
-      }
-      return res.json({ message: "Reservation updated successfully." });
-    } else if (action === "Cancel") {
-      // Logic to Cancel a Reservation
-      if (!reservationID) {
-        return res
-          .status(400)
-          .json({ error: "Reservation ID is required for cancellation." });
-      }
-
-      // Ensure related data (e.g., Payment) is handled
-      const deletePayment = `
-        DELETE FROM Payment WHERE ResID = ?
-      `;
-      await connection.query(deletePayment, [reservationID]);
-
-      const deleteReservation = `
-        DELETE FROM Reservation WHERE ReservationID = ?
-      `;
-      const [result] = await connection.query(deleteReservation, [
-        reservationID,
-      ]);
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ error: "Reservation not found." });
-      }
-      return res.json({ message: "Reservation cancelled successfully." });
-    } else {
-      return res.status(400).json({
-        error: "Invalid action. Allowed actions are Add, Edit, Cancel.",
-      });
+    // Validate TrainID
+    const [train] = await connection.query(
+      "SELECT TrainID FROM Train WHERE TrainID = ?",
+      [trainID]
+    );
+    if (train.length === 0) {
+      return res.status(400).json({ error: "Invalid Train ID." });
     }
+
+    // Validate StaffID
+    const [staff] = await connection.query(
+      "SELECT StaffID FROM Staff WHERE StaffID = ?",
+      [staffID]
+    );
+    if (staff.length === 0) {
+      return res.status(400).json({ error: "Invalid Staff ID." });
+    }
+
+    // Map role to Stop_Sequence
+    const roleMap = {
+      Driver: 1,
+      Engineer: 2,
+    };
+    const stopSequence = roleMap[role];
+    if (!stopSequence) {
+      return res
+        .status(400)
+        .json({ error: "Invalid role. Allowed roles are Driver, Engineer." });
+    }
+
+    // Insert or update staff assignment
+    const sql = `
+      INSERT INTO Schedule (TrainID, StationID, Stop_Sequence)
+      VALUES (?, ?, ?)
+      ON DUPLICATE KEY UPDATE Stop_Sequence = ?;
+    `;
+    const [result] = await connection.query(sql, [
+      trainID,
+      staffID, // Map staffID to StationID
+      stopSequence,
+      stopSequence,
+    ]);
+
+    await connection.commit();
+    res.status(200).json({ message: "Staff assigned successfully." });
   } catch (err) {
-    console.error("Error managing reservation:", err);
+    console.error("Error assigning staff:", err);
+    await connection.rollback();
+    res
+      .status(500)
+      .json({ error: "A server error occurred. Please try again later." });
+  } finally {
+    connection.release();
+  }
+});
+
+// promote passengeres
+app.post("/promotePassenger", async (req, res) => {
+  const { passengerID } = req.body;
+
+  if (!passengerID) {
+    return res.status(400).json({ error: "Passenger ID is required." });
+  }
+
+  const connection = await db.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    console.log("PassengerID received:", passengerID);
+
+    // Check if PassengerID exists in the WaitingList
+    const [waitlist] = await connection.query(
+      `
+      SELECT wl.ReservationID
+      FROM WaitingList wl
+      JOIN Reservation r ON wl.ReservationID = r.ReservationID
+      WHERE r.PassengerID = ?
+      `,
+      [passengerID]
+    );
+
+    if (waitlist.length === 0) {
+      console.log(
+        "Passenger not found in waitlist for PassengerID:",
+        passengerID
+      );
+      return res
+        .status(404)
+        .json({ error: "Passenger not found in the waitlist." });
+    }
+
+    const reservationID = waitlist[0].ReservationID;
+
+    // Remove Passenger from WaitingList
+    await connection.query("DELETE FROM WaitingList WHERE ReservationID = ?", [
+      reservationID,
+    ]);
+    console.log("Removed from WaitingList, ReservationID:", reservationID);
+
+    // Fetch Train Details
+    const [trainDetails] = await connection.query(
+      `
+      SELECT Train.TrainID, Train.English_name, Train.Arabic_name, Schedule.Departure_Time AS Date, 
+             Station.name AS FromStation, Station2.name AS ToStation
+      FROM Reservation
+      JOIN Train ON Reservation.TrainID = Train.TrainID
+      JOIN Schedule ON Reservation.TrainID = Schedule.TrainID
+      JOIN Station AS Station ON Reservation.FromStation = Station.StationID
+      JOIN Station AS Station2 ON Reservation.ToStation = Station2.StationID
+      WHERE Reservation.ReservationID = ?
+      `,
+      [reservationID]
+    );
+
+    if (trainDetails.length === 0) {
+      console.log(
+        "Failed to fetch train details for ReservationID:",
+        reservationID
+      );
+      throw new Error("Failed to fetch train details.");
+    }
+
+    await connection.commit();
+    res.status(200).json({
+      message: "Passenger promoted successfully!",
+      trainDetails: trainDetails[0],
+    });
+  } catch (err) {
+    console.error("Error promoting passenger:", err);
+    await connection.rollback();
     res
       .status(500)
       .json({ error: "A server error occurred. Please try again later." });
