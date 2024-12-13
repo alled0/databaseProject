@@ -4,8 +4,8 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const db = require("./database");
 require("dotenv").config();
-// const nodemailer = require("nodemailer");
-// const cron = require("node-cron");
+const nodemailer = require("nodemailer");
+const cron = require("node-cron");
 
 const app = express();
 const PORT = 4000;
@@ -13,47 +13,125 @@ const PORT = 4000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// // Set up Nodemailer transporter
+// Set up Nodemailer transporter
 // const transporter = nodemailer.createTransport({
 //   service: "gmail",
 //   auth: {
-//     user: "your_email@gmail.com", // Replace with your email
-//     pass: "your_email_password", // Replace with your password
+//     user: "saudirailwaysdb@gmail.com",
+//     pass: "SaudiRailwaysDB123",
 //   },
 // });
 
-// // Function to send email reminders
-// const sendUnpaidReminders = async () => {
-//   const [rows] = await db.query(`
-//       SELECT Passenger.Email, Passenger.Name, Reservation.ReservationID
-//       FROM Reservation
-//       JOIN Passenger ON Reservation.PassengerID = Passenger.PassengerID
-//       WHERE Reservation.Paid = 0
-//   `);
+const transporter = nodemailer.createTransport({
+  host: "smtp.mail.yahoo.com",
+  port: 465,
+  secure: false,
+  auth: {
+    user: "railwaysaudi@yahoo.com", // Replace with your Yahoo email
+    pass: "SaudiRailwaysDB123@", // Use your Yahoo account password or app password
+  },
+  connectionTimeout: 10000000, // 10 seconds
+});
 
-//   rows.forEach((row) => {
-//     const mailOptions = {
-//       from: "your_email@gmail.com",
-//       to: row.Email,
-//       subject: "Payment Reminder",
-//       text: `Dear ${row.Name}, please complete the payment for your reservation (ID: ${row.ReservationID}).`,
-//     };
+// const transporter = nodemailer.createTransport(
+//   sgTransport({
+//     auth: {
+//       api_key: "your-sendgrid-api-key", // Replace with your SendGrid API key
+//     },
+//   })
+// );
 
-//     transporter.sendMail(mailOptions, (error, info) => {
-//       if (error) {
-//         console.error(`Failed to send email to ${row.Email}:`, error);
-//       } else {
-//         console.log(`Email sent to ${row.Email}:`, info.response);
-//       }
-//     });
-//   });
-// };
-
-// // Schedule the function to run daily at 10pm
-// cron.schedule("10 * * *", () => {
-//   console.log("Sending email reminders...");
-//   sendEmailReminders();
+// const transporter = nodemailer.createTransport({. 2KL568PFXS5DYUTCU2P82295
+//   host: "smtp.office365.com",
+//   port: 587,
+//   secure: false, // TLS
+//   auth: {
+//     user: "your-email@outlook.com", // Replace with your Outlook/Hotmail email
+//     pass: "your-password", // Use your Outlook account password or app password
+//   },
 // });
+
+// In-memory log to track sent reminders
+const sentReminders = new Set(); // For departure reminders
+
+// Function to send email reminders for unpaid reservations
+const sendUnpaidReminders = async () => {
+  try {
+    const [rows] = await db.query(`
+      SELECT Passenger.Email, Passenger.Name, Reservation.ReservationID
+      FROM Reservation
+      JOIN Passenger ON Reservation.PassengerID = Passenger.PassengerID
+      WHERE Reservation.Paid = 0
+    `);
+
+    rows.forEach((row) => {
+      const mailOptions = {
+        from: "railwaysaudi@yahoo.com",
+        to: row.Email,
+        subject: "Payment Reminder",
+        text: `Dear ${row.Name}, please complete the payment for your reservation (ID: ${row.ReservationID}).`,
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error(`Failed to send email to ${row.Email}:`, error);
+        } else {
+          console.log(`Email sent to ${row.Email}:`, info.response);
+        }
+      });
+    });
+  } catch (err) {
+    console.error("Error sending reminders:", err);
+  }
+};
+
+// Function to send departure reminders 3 hours before train departure
+const sendDepartureReminders = async () => {
+  try {
+    const [rows] = await db.query(`
+      SELECT r.ReservationID, p.Email, p.Name, t.English_name, t.Arabic_name, s.Departure_Time
+      FROM Reservation r
+      JOIN Passenger p ON r.PassengerID = p.PassengerID
+      JOIN Schedule s ON r.TrainID = s.TrainID
+      JOIN Train t ON r.TrainID = t.TrainID
+      WHERE TIMESTAMPDIFF(HOUR, NOW(), s.Departure_Time) = 3
+    `);
+
+    rows.forEach((row) => {
+      if (!sentReminders.has(row.ReservationID)) {
+        // Send email
+        const mailOptions = {
+          from: "railwaysaudi@yahoo.com",
+          to: row.Email,
+          subject: "Train Departure Reminder",
+          text: `Dear ${row.Name}, your train (${row.English_name}/${row.Arabic_name}) is departing at ${row.Departure_Time}. Please be at the station on time.`,
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            console.error(`Failed to send reminder to ${row.Email}:`, error);
+          } else {
+            console.log(`Reminder sent to ${row.Email}:`, info.response);
+            sentReminders.add(row.ReservationID); // Log the ReservationID
+          }
+        });
+      }
+    });
+  } catch (err) {
+    console.error("Error sending departure reminders:", err);
+  }
+};
+
+// Schedule the functions
+cron.schedule("0 22 * * *", () => {
+  console.log("Sending unpaid email reminders...");
+  sendUnpaidReminders();
+});
+
+(async () => {
+  console.log("Sending unpaid reminders manually...");
+  await sendUnpaidReminders();
+})();
 
 // // Test Route
 // app.get("/", (req, res) => {
@@ -252,12 +330,12 @@ app.post("/completePayment", async (req, res) => {
     await connection.beginTransaction();
 
     const updatePayment = `
-      UPDATE Payment SET Payment_Status = 'Completed' WHERE ResID = ?
+      UPDATE Reservation SET Paid = 1 WHERE ReservationID = ?
     `;
     const [result] = await connection.query(updatePayment, [reservationID]);
 
     if (result.affectedRows === 0) {
-      throw new Error("No payment found for the given reservation ID.");
+      throw new Error("No reservation found with the given ID.");
     }
 
     await connection.commit();

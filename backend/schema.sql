@@ -11,6 +11,8 @@ DROP TABLE IF EXISTS Track;
 DROP TABLE IF EXISTS Station;
 DROP TABLE IF EXISTS Train;
 DROP TABLE IF EXISTS Staff;
+DROP EVENT IF EXISTS NotifyPassengersBeforeDeparture;
+
 
 -- Train Table
 CREATE TABLE Train (
@@ -48,26 +50,25 @@ CREATE TABLE Schedule (
 );
 
 
--- DELIMITER $$
+CREATE EVENT NotifyPassengersBeforeDeparture
+ON SCHEDULE EVERY 1 HOUR
+DO
+BEGIN
+  UPDATE Reservation r
+  JOIN Schedule s ON r.TrainID = s.TrainID
+  SET r.ReminderSent = 1  -- Assuming 'ReminderSent' is an available column
+  WHERE TIMESTAMPDIFF(HOUR, NOW(), s.Departure_Time) = 3
+    AND r.ReminderSent = 0;
 
--- CREATE TRIGGER send_reminder_message
--- AFTER INSERT ON Schedule
--- FOR EACH ROW
--- BEGIN
---     DECLARE current_time DATETIME;
---     SET current_time = NOW();
+  -- Optional: Log to console or fetch for backend processing
+  SELECT PassengerID, CONCAT('Reminder: Your train is departing in 3 hours.') AS Message
+  FROM Reservation r
+  JOIN Schedule s ON r.TrainID = s.TrainID
+  WHERE TIMESTAMPDIFF(HOUR, NOW(), s.Departure_Time) = 3
+    AND r.ReminderSent = 1;
+END;
 
---     -- Check if the train departs in 3 hours
---     IF TIMESTAMPDIFF(HOUR, current_time, NEW.Departure_Time) = 3 THEN
---         INSERT INTO Notifications (PassengerID, Message)
---         SELECT Reservation.PassengerID, 
---                CONCAT('Reminder: Your train (ID: ', NEW.TrainID, ') departs in 3 hours.')
---         FROM Reservation
---         WHERE Reservation.TrainID = NEW.TrainID;
---     END IF;
--- END$$
 
--- DELIMITER;
 
 
 -- Passenger Table
@@ -102,6 +103,7 @@ CREATE TABLE Reservation (
   SeatNumber VARCHAR(10),
   PassengerID INT,
   PaymentID INT,
+  Paid BOOLEAN DEFAULT 0,
   FOREIGN KEY (TrainID) REFERENCES Train(TrainID),
   FOREIGN KEY (FromStation) REFERENCES Station(StationID),
   FOREIGN KEY (ToStation) REFERENCES Station(StationID),

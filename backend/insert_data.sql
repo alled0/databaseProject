@@ -48,10 +48,10 @@ INSERT INTO Schedule (TrainID, StationID, Stop_Sequence, Arrival_Time, Departure
 
 -- Insert into Passenger Table
 INSERT INTO Passenger (Name, ContactInfo, IDDocument, LoyaltyMiles, LoyaltyStat, email, password) VALUES
-('John Doe', 'john.doe@example.com', 'ID123456', 1500, 'Silver', 'passenger1@example.com', 'pass123'),
-('Jane Smith', 'jane.smith@example.com', 'ID654321', 3000, 'Gold', 'passenger2@example.com', 'pass456'),
-('Ali Hassan', 'ali.hassan@example.com', 'ID112233', 500, 'Green', 'passenger3@example.com', 'pass789'),
-('Maria Garcia', 'maria.garcia@example.com', 'ID445566', 2500, 'Silver', 'passenger4@example.com', 'pass321');
+('John Doe', '+96643434', 'ID123456', 1500, 'Silver', 'passenger1@example.com', 'pass123'),
+('Jane Smith', '+966434341', 'ID654321', 3000, 'Gold', 'omaralkholief@gmail.com', 'pass456'),
+('Ali Hassan', '+966434342', 'ID112233', 500, 'Green', 'passenger3@example.com', 'pass789'),
+('Maria Garcia', '+966434343', 'ID445566', 2500, 'Silver', 'passenger4@example.com', 'pass321');
 
 
 -- Insert into Dependent Table
@@ -63,11 +63,22 @@ INSERT INTO Dependent (RelationToPassenger, Passenger_ID, Name) VALUES
 
 -- Insert into Reservation Table
 -- Note: PaymentID will be NULL initially due to circular dependency
-INSERT INTO Reservation (TrainID, Date, FromStation, ToStation, CoachType, SeatNumber, PassengerID, PaymentID) VALUES
-(1, '2024-12-15', 1, 3, 'Economy', '12A', 1, NULL),
-(2, '2024-12-16', 2, 4, 'Business', '1B', 2, NULL),
-(3, '2024-12-17', 4, 5, 'Economy', '15C', 3, NULL),
-(4, '2024-12-18', 1, 5, 'Business', '2D', 4, NULL);
+INSERT INTO Reservation (TrainID, Date, FromStation, ToStation, CoachType, SeatNumber, PassengerID, PaymentID, Paid) VALUES
+(1, '2024-12-15', 1, 3, 'Economy', '12A', 1, NULL, 1),
+(2, '2024-12-16', 2, 4, 'Business', '1B', 2, NULL,0),
+(3, '2024-12-17', 4, 5, 'Economy', '15C', 3, NULL, 1),
+(4, '2024-12-18', 1, 5, 'Business', '2D', 4, NULL,1);
+
+
+-- unpaid reservations
+-- INSERT INTO Passenger (Name, ContactInfo, IDDocument, LoyaltyMiles, LoyaltyStat, email, password)
+-- VALUES ('Test Passenger', '1234567890', 'ID1234', 0, 'Green', 'test@example.com', 'password');
+
+-- INSERT INTO Reservation (TrainID, Date, FromStation, ToStation, CoachType, SeatNumber, PassengerID, PaymentID)
+-- VALUES (1, CURDATE(), 101, 102, 'Economy', 'A1', LAST_INSERT_ID(), NULL);
+
+-- UPDATE Reservation SET Paid = 0 WHERE ReservationID = 1; -- Set unpaid status
+
 
 -- Insert into Payment Table
 INSERT INTO Payment (ResID, Date, VAT, Amount, Payment_Status) VALUES

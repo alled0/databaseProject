@@ -32,7 +32,7 @@ const Payment = () => {
       .post("http://localhost:4000/completePayment", { reservationID })
       .then((response) => {
         if (response.status === 200) {
-          setPaymentStatus("Payment successful! Your ticket has been issued.");
+          setPaymentStatus("Payment successful! Your reservation is now paid.");
         } else {
           setError("Payment failed. Please try again later.");
         }
