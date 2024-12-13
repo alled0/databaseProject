@@ -1,0 +1,326 @@
+/* frontend\src\style\Admin.css
+.container {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .heading {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+    color: #333;
+  }
+  
+  .input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 16px;
+  }
+  
+  .button {
+    padding: 12px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 15px;
+    transition: background-color 0.3s;
+  }
+  
+  .button:hover {
+    background-color: #45a049;
+  }
+  
+  .error {
+    color: red;
+    font-size: 14px;
+    margin-bottom: 15px;
+  }
+  
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  li {
+    margin-bottom: 10px;
+  }
+  
+  a {
+    text-decoration: none;
+    color: #4CAF50;
+    font-size: 18px;
+  }
+  
+  a:hover {
+    color: #333;
+  }
+   */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* frontend/src/style/Report.css */
+
+/* ---------------------------------
+   1. General Container Styles
+--------------------------------- */
+
+.container {
+    max-width: 1000px; /* Increased from 800px to 1000px */
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #ffffff; /* White background for clarity */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 1200px) {
+    .container {
+        max-width: 95%;
+    }
+}
+
+/* ---------------------------------
+   2. Enhanced Table Styles
+--------------------------------- */
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    margin-bottom: 20px;
+    font-size: 16px;
+    table-layout: fixed; /* Fixed layout for better control */
+    word-wrap: break-word; /* Allow long words to break */
+    min-width: 600px; /* Prevent table from becoming too narrow */
+}
+
+.report-table th,
+.report-table td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid #dddddd;
+    overflow: hidden; /* Hide overflow content */
+    text-overflow: ellipsis; /* Add ellipsis for overflowing text */
+    white-space: normal; /* Allow text to wrap */
+    word-break: break-word; /* Ensure words break properly */
+}
+
+.report-table th {
+    background-color: #4CAF50; /* Green background for headers */
+    color: white;
+    font-weight: bold;
+}
+
+.report-table tr:nth-child(even) {
+    background-color: #f2f2f2; /* Light gray for even rows */
+}
+
+.report-table tr:hover {
+    background-color: #e0f7fa; /* Light blue on hover */
+}
+
+/* Specific column widths (optional) */
+.report-table th:nth-child(1),
+.report-table td:nth-child(1) {
+    width: 25%; /* Train Name or similar */
+}
+
+.report-table th:nth-child(2),
+.report-table td:nth-child(2) {
+    width: 15%; /* Train ID or Reservation ID */
+}
+
+.report-table th:nth-child(3),
+.report-table td:nth-child(3) {
+    width: 20%; /* Date or Loyalty Status */
+}
+
+.report-table th:nth-child(4),
+.report-table td:nth-child(4) {
+    width: 20%; /* From Station or Class */
+}
+
+.report-table th:nth-child(5),
+.report-table td:nth-child(5) {
+    width: 20%; /* To Station or Load Factor */
+}
+
+/* ---------------------------------
+   3. No Reservations Message
+--------------------------------- */
+
+.no-reservations {
+    font-style: italic;
+    color: #777777;
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* ---------------------------------
+   4. Button Enhancements
+--------------------------------- */
+
+/* Specific button styles for Reports page actions */
+.report-button {
+    width: auto; /* Override full width if necessary */
+    padding: 10px 18px;
+    font-size: 14px;
+    background-color: #4CAF50; /* Consistent with Admin.css */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 15px;
+}
+
+.report-button:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
+
+/* ---------------------------------
+   5. Scrollable Tables
+--------------------------------- */
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+.report-table {
+    min-width: 600px; /* Prevent table from becoming too narrow */
+}
+
+/* ---------------------------------
+   6. Responsive Table Design
+--------------------------------- */
+
+@media screen and (max-width: 768px) {
+    .report-table {
+        table-layout: auto; /* Allow table to adjust based on content */
+        word-wrap: break-word;
+        white-space: normal; /* Allow text to wrap */
+    }
+
+    .report-table th,
+    .report-table td {
+        white-space: normal; /* Allow text to wrap */
+    }
+
+    .report-table thead {
+        display: none; /* Hide table headers on small screens */
+    }
+
+    .report-table, .report-table tbody, .report-table tr, .report-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .report-table tr {
+        margin-bottom: 15px;
+        border: 1px solid #dddddd;
+        border-radius: 5px;
+        padding: 10px;
+        background-color: #f9f9f9;
+    }
+
+    .report-table td {
+        text-align: left;
+        padding-left: 50%;
+        position: relative;
+    }
+
+    .report-table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 15px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
+        color: #333333;
+    }
+}
+
+/* ---------------------------------
+   7. Passenger ID Form Styles
+--------------------------------- */
+
+.passenger-id-form {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.passenger-id-form .form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.passenger-id-form .form-group .label {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.passenger-id-form .form-group .input {
+    padding: 10px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+}
+
+.passenger-id-form .form-group .input:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+/* ---------------------------------
+   8. Error Message Styles
+--------------------------------- */
+
+.error-message {
+    color: #ff0000; /* Red color for errors */
+    text-align: center;
+    margin-top: 10px;
+    font-weight: bold;
+}
+

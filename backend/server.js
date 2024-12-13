@@ -158,6 +158,8 @@ app.get("/stations", async (req, res) => {
   }
 });
 
+
+
 // Search for trains based on origin and destination
 app.get("/searchTrains", async (req, res) => {
   const { fromStation, toStation } = req.query;
@@ -661,6 +663,220 @@ app.post("/api/login", async (req, res) => {
     res.status(500).json({ message: "Server error." });
   }
 });
+
+
+
+// Example endpoints (add these to server.js):
+
+// 1. Current active trains today (all users)
+// 1. Current active trains today or selected date (all users)
+app.get("/reports/active-trains", async (req, res) => {
+  try {
+    const { date } = req.query; // Get date from query parameters
+    let sql;
+    let params = [];
+
+    if (date) {
+      // Validate the date format (basic validation)
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(date)) {
+        return res.status(400).json({ error: "Invalid date format. Use YYYY-MM-DD." });
+      }
+
+      sql = `
+        SELECT DISTINCT t.TrainID, t.English_name
+        FROM Train t
+        JOIN Reservation r ON t.TrainID = r.TrainID
+        WHERE r.Date = ?
+      `;
+      params = [date];
+      console.log(`Fetching active trains for date: ${date}`);
+    } else {
+      sql = `
+        SELECT DISTINCT t.TrainID, t.English_name
+        FROM Train t
+        JOIN Reservation r ON t.TrainID = r.TrainID
+        WHERE r.Date = CURDATE()
+      `;
+      console.log(`Fetching active trains for today: ${new Date().toISOString().split('T')[0]}`);
+    }
+
+    const [rows] = await db.query(sql, params);
+    console.log(`Active trains fetched: ${JSON.stringify(rows)}`);
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching active trains:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 2. List stations for each train (admin)
+app.get("/reports/stations-for-trains", async (req, res) => {
+  try {
+    const sql = `
+      SELECT t.TrainID, t.English_name, GROUP_CONCAT(s.name ORDER BY sc.Stop_Sequence ASC) AS Stations
+      FROM Train t
+      JOIN Schedule sc ON t.TrainID = sc.TrainID
+      JOIN Station s ON sc.StationID = s.StationID
+      GROUP BY t.TrainID
+    `;
+    const [rows] = await db.query(sql);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 3. Reservation details given passenger ID (passenger)
+app.get("/reports/reservations/:passengerID", async (req, res) => {
+  const { passengerID } = req.params;
+  try {
+    const sql = `
+      SELECT r.ReservationID, r.Date, tr.English_name, sFrom.name AS FromName, sTo.name AS ToName
+      FROM Reservation r
+      JOIN Train tr ON r.TrainID = tr.TrainID
+      JOIN Station sFrom ON r.FromStation = sFrom.StationID
+      JOIN Station sTo ON r.ToStation = sTo.StationID
+      WHERE r.PassengerID = ?
+    `;
+    const [rows] = await db.query(sql, [passengerID]);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 4. Waitlisted loyalty passengers in each class given a train number (admin)
+app.get("/reports/waitlisted-loyalty/:trainNumber", async (req, res) => {
+  const { trainNumber } = req.params;
+  try {
+    const sql = `
+      SELECT p.Name, p.LoyaltyStat, r.CoachType
+      FROM WaitingList w
+      JOIN Reservation r ON w.ReservationID = r.ReservationID
+      JOIN Passenger p ON r.PassengerID = p.PassengerID
+      WHERE r.TrainID = ?
+      AND p.LoyaltyStat IN ('Silver','Gold')
+    `;
+    const [rows] = await db.query(sql, [trainNumber]);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 5. Average load factor for each train on a given date (admin)
+app.get("/reports/load-factor/:date", async (req, res) => {
+  const { date } = req.params;
+  try {
+    // Example logic: Suppose total seats is fixed (e.g., Economy=100 seats, Business=50)
+    // and count how many reservations exist for each train on that date
+    // This is a mock calculation; adjust based on your data.
+    const sql = `
+      SELECT r.TrainID, 
+             COUNT(*) AS BookedSeats, 
+             (SELECT 150) AS TotalSeats, 
+             (COUNT(*) / 150)*100 AS AverageLoadFactor
+      FROM Reservation r
+      WHERE r.Date = ?
+      GROUP BY r.TrainID
+    `;
+    const [rows] = await db.query(sql, [date]);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 6. List of dependents travelling on a given date (admin)
+app.get("/reports/dependents/:date", async (req, res) => {
+  const { date } = req.params;
+  try {
+    const sql = `
+      SELECT d.Name AS DependentName, p.Name AS PassengerName, r.Date, t.English_name
+      FROM Dependent d
+      JOIN Passenger p ON d.Passenger_ID = p.PassengerID
+      JOIN Reservation r ON p.PassengerID = r.PassengerID
+      JOIN Train t ON r.TrainID = t.TrainID
+      WHERE r.Date = ?
+    `;
+    const [rows] = await db.query(sql, [date]);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 1. Current active trains today or selected date (all users)
+app.get("/reports/active-trains", async (req, res) => {
+  try {
+    const { date } = req.query; // Get date from query parameters
+    let sql;
+    let params = [];
+
+    if (date) {
+      // Validate the date format (basic validation)
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(date)) {
+        return res.status(400).json({ error: "Invalid date format. Use YYYY-MM-DD." });
+      }
+
+      sql = `
+        SELECT DISTINCT t.TrainID, t.English_name
+        FROM Train t
+        JOIN Reservation r ON t.TrainID = r.TrainID
+        WHERE r.Date = ?
+      `;
+      params = [date];
+      console.log(`Fetching active trains for date: ${date}`);
+    } else {
+      sql = `
+        SELECT DISTINCT t.TrainID, t.English_name
+        FROM Train t
+        JOIN Reservation r ON t.TrainID = r.TrainID
+        WHERE r.Date = CURDATE()
+      `;
+      console.log(`Fetching active trains for today: ${new Date().toISOString().split('T')[0]}`);
+    }
+
+    const [rows] = await db.query(sql, params);
+    console.log(`Active trains fetched: ${JSON.stringify(rows)}`);
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching active trains:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 3. Reservation details given passenger ID and optional date (passenger)
+app.get("/reports/reservations/:passengerID", async (req, res) => {
+  const { passengerID } = req.params;
+  const { date } = req.query;
+
+  try {
+    let sql = `
+      SELECT r.ReservationID, r.Date, tr.English_name, sFrom.name AS FromName, sTo.name AS ToName
+      FROM Reservation r
+      JOIN Train tr ON r.TrainID = tr.TrainID
+      JOIN Station sFrom ON r.FromStation = sFrom.StationID
+      JOIN Station sTo ON r.ToStation = sTo.StationID
+      WHERE r.PassengerID = ?
+    `;
+    let params = [passengerID];
+    if (date) {
+      sql += " AND r.Date = ?";
+      params.push(date);
+    }
+
+    const [rows] = await db.query(sql, params);
+    console.log(`Reservations for PassengerID ${passengerID} on ${date || 'all dates'}: ${JSON.stringify(rows)}`);
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching reservations:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 // Start the server
 app.listen(PORT, () => {

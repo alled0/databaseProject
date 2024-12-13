@@ -1,3 +1,4 @@
+//App.js
 import React, { useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar";
@@ -8,6 +9,8 @@ import ManageReservations from "./components/ManageReservations";
 import AssignStaff from "./components/AssignStaff";
 import PromotePassenger from "./components/PromotePassenger";
 import Payment from "./components/Payment";
+import Reports from './components/Reports';
+
 
 function App() {
   // Simulate user role (change between "Passenger" and "Admin" to test)
@@ -32,18 +35,18 @@ function App() {
               <Route path="/searchtrain" element={<SearchTrains />} />
               <Route path="/book" element={<BookSeat />} />
               <Route path="/payment/:reservationID" element={<Payment />} />
+              <Route path="/reports" element={<Reports role={role} />} />
+
             </>
           )}
           {role === "Admin" && (
-            <>
-              <Route
-                path="/manage-reservations"
-                element={<ManageReservations />}
-              />
-              <Route path="/assign-staff" element={<AssignStaff />} />
-              <Route path="/promote-passenger" element={<PromotePassenger />} />
-            </>
-          )}
+  <>
+    <Route path="/manage-reservations" element={<ManageReservations />} />
+    <Route path="/assign-staff" element={<AssignStaff />} />
+    <Route path="/promote-passenger" element={<PromotePassenger />} />
+    <Route path="/reports" element={<Reports role={role} />} />
+  </>
+)}
         </Routes>
       </div>
     </Router>
