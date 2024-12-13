@@ -4,6 +4,8 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const db = require("./database");
 require("dotenv").config();
+// const nodemailer = require("nodemailer");
+// const cron = require("node-cron");
 
 const app = express();
 const PORT = 4000;
@@ -11,10 +13,52 @@ const PORT = 4000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Test Route
-app.get("/", (req, res) => {
-  res.send("Saudi Railways Backend");
-});
+// // Set up Nodemailer transporter
+// const transporter = nodemailer.createTransport({
+//   service: "gmail",
+//   auth: {
+//     user: "your_email@gmail.com", // Replace with your email
+//     pass: "your_email_password", // Replace with your password
+//   },
+// });
+
+// // Function to send email reminders
+// const sendUnpaidReminders = async () => {
+//   const [rows] = await db.query(`
+//       SELECT Passenger.Email, Passenger.Name, Reservation.ReservationID
+//       FROM Reservation
+//       JOIN Passenger ON Reservation.PassengerID = Passenger.PassengerID
+//       WHERE Reservation.Paid = 0
+//   `);
+
+//   rows.forEach((row) => {
+//     const mailOptions = {
+//       from: "your_email@gmail.com",
+//       to: row.Email,
+//       subject: "Payment Reminder",
+//       text: `Dear ${row.Name}, please complete the payment for your reservation (ID: ${row.ReservationID}).`,
+//     };
+
+//     transporter.sendMail(mailOptions, (error, info) => {
+//       if (error) {
+//         console.error(`Failed to send email to ${row.Email}:`, error);
+//       } else {
+//         console.log(`Email sent to ${row.Email}:`, info.response);
+//       }
+//     });
+//   });
+// };
+
+// // Schedule the function to run daily at 10pm
+// cron.schedule("10 * * *", () => {
+//   console.log("Sending email reminders...");
+//   sendEmailReminders();
+// });
+
+// // Test Route
+// app.get("/", (req, res) => {
+//   res.send("Saudi Railways Backend");
+// });
 
 
 // Get all trains
@@ -231,6 +275,131 @@ app.post("/completePayment", async (req, res) => {
 });
 
 // Manage Reservations
+app.post("/manageReservations", async (req, res) => {
+  const { action, reservationID, passengerEmail, details } = req.body;
+
+  if (!action) {
+    return res.status(400).json({ error: "Action is required." });
+  }
+
+  const connection = await db.getConnection();
+
+  try {
+    if (action === "Add") {
+      // Logic to Add a Reservation
+      const { Date, FromStation, ToStation, CoachType, SeatNumber } = details;
+
+      if (
+        !Date ||
+        !FromStation ||
+        !ToStation ||
+        !CoachType ||
+        !SeatNumber ||
+        !passengerEmail
+      ) {
+        return res.status(400).json({
+          error:
+            "Date, FromStation, ToStation, CoachType, SeatNumber, and Passenger Email are required.",
+        });
+      }
+
+      // Lookup PassengerID by Email
+      const [passenger] = await connection.query(
+        "SELECT PassengerID FROM Passenger WHERE email = ?",
+        [passengerEmail]
+      );
+      if (passenger.length === 0) {
+        return res.status(400).json({ error: "Invalid passenger email." });
+      }
+      const PassengerID = passenger[0].PassengerID;
+
+      const sql = `
+        INSERT INTO Reservation (Date, FromStation, ToStation, CoachType, SeatNumber, PassengerID)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `;
+      const [result] = await connection.query(sql, [
+        Date,
+        FromStation,
+        ToStation,
+        CoachType,
+        SeatNumber,
+        PassengerID,
+      ]);
+      return res.json({
+        message: "Reservation added successfully.",
+        reservationID: result.insertId,
+      });
+    } else if (action === "Edit") {
+      // Logic to Edit a Reservation
+      const { Date, FromStation, ToStation, CoachType, SeatNumber } = details;
+
+      if (!reservationID) {
+        return res.status(400).json({
+          error: "Reservation ID is required for editing.",
+        });
+      }
+
+      const sql = `
+        UPDATE Reservation
+        SET
+          Date = COALESCE(?, Date),
+          FromStation = COALESCE(?, FromStation),
+          ToStation = COALESCE(?, ToStation),
+          CoachType = COALESCE(?, CoachType),
+          SeatNumber = COALESCE(?, SeatNumber)
+        WHERE ReservationID = ?
+      `;
+      const [result] = await connection.query(sql, [
+        Date,
+        FromStation,
+        ToStation,
+        CoachType,
+        SeatNumber,
+        reservationID,
+      ]);
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Reservation not found." });
+      }
+      return res.json({ message: "Reservation updated successfully." });
+    } else if (action === "Cancel") {
+      // Logic to Cancel a Reservation
+      if (!reservationID) {
+        return res
+          .status(400)
+          .json({ error: "Reservation ID is required for cancellation." });
+      }
+
+      // Ensure related data (e.g., Payment) is handled
+      const deletePayment = `
+        DELETE FROM Payment WHERE ResID = ?
+      `;
+      await connection.query(deletePayment, [reservationID]);
+
+      const deleteReservation = `
+        DELETE FROM Reservation WHERE ReservationID = ?
+      `;
+      const [result] = await connection.query(deleteReservation, [
+        reservationID,
+      ]);
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Reservation not found." });
+      }
+      return res.json({ message: "Reservation cancelled successfully." });
+    } else {
+      return res.status(400).json({
+        error: "Invalid action. Allowed actions are Add, Edit, Cancel.",
+      });
+    }
+  } catch (err) {
+    console.error("Error managing reservation:", err);
+    res
+      .status(500)
+      .json({ error: "A server error occurred. Please try again later." });
+  } finally {
+    connection.release();
+  }
+});
+
 app.post("/assignStaff", async (req, res) => {
   const { trainID, staffID, role } = req.body;
 
