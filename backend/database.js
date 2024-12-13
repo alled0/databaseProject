@@ -22,7 +22,21 @@ const pool = mysql.createPool({
 const promisePool = pool.promise();
 
 // Initialize Database Schema and Insert Data
+
+const checkDBInitialized = async () => {
+  try {
+    const [rows] = await promisePool.query("SHOW TABLES;");
+    return rows.length > 0; // If tables exist, assume the DB is initialized
+  } catch (err) {
+    console.error("Error checking database:", err);
+    return false;
+  }
+};
 const initDB = async () => {
+  if (await checkDBInitialized()) {
+    console.log("Database is already initialized.");
+    return;
+  }
   try {
     // Read SQL schema and data files
     const schemaPath = path.join(__dirname, "schema.sql");
