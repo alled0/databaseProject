@@ -70,3 +70,47 @@
 // // initDB();
 
 // module.exports = pool; 
+
+
+
+
+
+
+
+// // Create a connection pool with multipleStatements enabled
+// const pool = mysql.createPool({
+//   host: process.env.DB_HOST || "localhost",
+//   user: process.env.DB_USER || "root",
+//   password: process.env.DB_PASSWORD || "omar0202",
+//   database: process.env.DB_NAME || "SaudiRailwaysDB",
+//   waitForConnections: true,
+//   connectionLimit: 10,
+//   queueLimit: 0,
+//   multipleStatements: true, // Enable multiple statements
+// });
+
+
+
+
+// backend/config/database.js
+const mysql = require("mysql2/promise");
+
+const db = mysql.createPool({
+   host: process.env.DB_HOST || "localhost",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "omar0202",
+  database: process.env.DB_NAME || "SaudiRailwaysDB",
+});
+
+// Test connection
+db.getConnection()
+  .then(connection => {
+    console.log("Database connected successfully.");
+    connection.release();
+  })
+  .catch(err => {
+    console.error("Database connection failed:", err);
+  });
+
+
+module.exports = { db };
