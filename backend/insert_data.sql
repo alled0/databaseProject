@@ -50,7 +50,7 @@ INSERT INTO Schedule (TrainID, StationID, Stop_Sequence, Arrival_Time, Departure
 INSERT INTO Passenger (Name, ContactInfo, IDDocument, LoyaltyMiles, LoyaltyStat, email, password) VALUES
 ('John Doe', '+96643434', 'ID123456', 1500, 'Silver', 'passenger1@example.com', 'pass123'),
 ('Jane Smith', '+966434341', 'ID654321', 3000, 'Gold', 'omaralkholief@gmail.com', 'pass456'),
-('Ali Hassan', '+966434342', 'ID112233', 500, 'Green', 'passenger3@example.com', 'pass789'),
+('waleed meshal', '+966434342', 'ID112233', 500, 'Green', 'waleedal305@hotmail.com', 'pass789'),
 ('Maria Garcia', '+966434343', 'ID445566', 2500, 'Silver', 'passenger4@example.com', 'pass321');
 
 
@@ -66,7 +66,7 @@ INSERT INTO Dependent (RelationToPassenger, Passenger_ID, Name) VALUES
 INSERT INTO Reservation (TrainID, Date, FromStation, ToStation, CoachType, SeatNumber, PassengerID, PaymentID, Paid) VALUES
 (1, '2024-12-15', 1, 3, 'Economy', '12A', 1, NULL, 1),
 (2, '2024-12-16', 2, 4, 'Business', '1B', 2, NULL,0),
-(3, '2024-12-17', 4, 5, 'Economy', '15C', 3, NULL, 1),
+(3, '2024-12-17', 4, 5, 'Economy', '15C', 3, NULL, 0),
 (4, '2024-12-18', 1, 5, 'Business', '2D', 4, NULL,1);
 
 

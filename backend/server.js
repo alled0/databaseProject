@@ -6,6 +6,10 @@ const db = require("./database");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 const cron = require("node-cron");
+const pool = require('./database'); // Ensure the path is correct
+const moment = require('moment-timezone');
+const winston = require('winston'); // For robust logging
+
 
 const app = express();
 const PORT = 4000;
@@ -13,46 +17,10 @@ const PORT = 4000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Set up Nodemailer transporter
-// const transporter = nodemailer.createTransport({
-//   service: "gmail",
-//   auth: {
-//     user: "saudirailwaysdb@gmail.com",
-//     pass: "SaudiRailwaysDB123",
-//   },
-// });
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.mail.yahoo.com",
-  port: 465,
-  secure: false,
-  auth: {
-    user: "railwaysaudi@yahoo.com", // Replace with your Yahoo email
-    pass: "SaudiRailwaysDB123@", // Use your Yahoo account password or app password
-  },
-  connectionTimeout: 10000000, // 10 seconds
-});
-
-// const transporter = nodemailer.createTransport(
-//   sgTransport({
-//     auth: {
-//       api_key: "your-sendgrid-api-key", // Replace with your SendGrid API key
-//     },
-//   })
-// );
-
-// const transporter = nodemailer.createTransport({. 2KL568PFXS5DYUTCU2P82295
-//   host: "smtp.office365.com",
-//   port: 587,
-//   secure: false, // TLS
-//   auth: {
-//     user: "your-email@outlook.com", // Replace with your Outlook/Hotmail email
-//     pass: "your-password", // Use your Outlook account password or app password
-//   },
-// });
 
 // In-memory log to track sent reminders
 const sentReminders = new Set(); // For departure reminders
+const senReminders = new Set(); // For departure reminders
 
 // Function to send email reminders for unpaid reservations
 const sendUnpaidReminders = async () => {
@@ -133,10 +101,6 @@ cron.schedule("0 22 * * *", () => {
   await sendUnpaidReminders();
 })();
 
-// // Test Route
-// app.get("/", (req, res) => {
-//   res.send("Saudi Railways Backend");
-// });
 
 // Get all trains
 app.get("/trains", async (req, res) => {
@@ -157,8 +121,6 @@ app.get("/stations", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-
 
 // Search for trains based on origin and destination
 app.get("/searchTrains", async (req, res) => {
@@ -664,8 +626,6 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-
-
 // Example endpoints (add these to server.js):
 
 // 1. Current active trains today (all users)
@@ -680,7 +640,9 @@ app.get("/reports/active-trains", async (req, res) => {
       // Validate the date format (basic validation)
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
       if (!dateRegex.test(date)) {
-        return res.status(400).json({ error: "Invalid date format. Use YYYY-MM-DD." });
+        return res
+          .status(400)
+          .json({ error: "Invalid date format. Use YYYY-MM-DD." });
       }
 
       sql = `
@@ -698,7 +660,11 @@ app.get("/reports/active-trains", async (req, res) => {
         JOIN Reservation r ON t.TrainID = r.TrainID
         WHERE r.Date = CURDATE()
       `;
-      console.log(`Fetching active trains for today: ${new Date().toISOString().split('T')[0]}`);
+      console.log(
+        `Fetching active trains for today: ${
+          new Date().toISOString().split("T")[0]
+        }`
+      );
     }
 
     const [rows] = await db.query(sql, params);
@@ -818,7 +784,9 @@ app.get("/reports/active-trains", async (req, res) => {
       // Validate the date format (basic validation)
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
       if (!dateRegex.test(date)) {
-        return res.status(400).json({ error: "Invalid date format. Use YYYY-MM-DD." });
+        return res
+          .status(400)
+          .json({ error: "Invalid date format. Use YYYY-MM-DD." });
       }
 
       sql = `
@@ -836,7 +804,11 @@ app.get("/reports/active-trains", async (req, res) => {
         JOIN Reservation r ON t.TrainID = r.TrainID
         WHERE r.Date = CURDATE()
       `;
-      console.log(`Fetching active trains for today: ${new Date().toISOString().split('T')[0]}`);
+      console.log(
+        `Fetching active trains for today: ${
+          new Date().toISOString().split("T")[0]
+        }`
+      );
     }
 
     const [rows] = await db.query(sql, params);
@@ -869,7 +841,11 @@ app.get("/reports/reservations/:passengerID", async (req, res) => {
     }
 
     const [rows] = await db.query(sql, params);
-    console.log(`Reservations for PassengerID ${passengerID} on ${date || 'all dates'}: ${JSON.stringify(rows)}`);
+    console.log(
+      `Reservations for PassengerID ${passengerID} on ${
+        date || "all dates"
+      }: ${JSON.stringify(rows)}`
+    );
     res.json(rows);
   } catch (err) {
     console.error("Error fetching reservations:", err);
@@ -877,8 +853,103 @@ app.get("/reports/reservations/:passengerID", async (req, res) => {
   }
 });
 
+// Configure Nodemailer Transporter
+const transporter = nodemailer.createTransport({
+  service: 'Gmail', // e.g., Gmail, Yahoo, etc.
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
+// Verify the transporter configuration
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('Error with email transporter:', error);
+  } else {
+    console.log('Email transporter is ready');
+  }
+});
+
+// Function to Send Reminder Emails
+const sendReminderEmails = async () => {
+  console.log('Inside sendReminderEmails, pool is:', pool);
+  console.log(`Type of pool: ${typeof pool}`); // Should output 'object'
+
+  const tz = 'Asia/Riyadh'; // Set your desired time zone
+  const now = moment().tz(tz);
+  const oneDayLater = now.clone().add(1, 'day');
+
+  // Define the exact 1-minute window
+  const windowStart = oneDayLater.clone().startOf('minute');
+  const windowEnd = windowStart.clone().add(1, 'minute');
+
+  // Format dates for MySQL
+  const formattedStartTime = windowStart.format('YYYY-MM-DD HH:mm:ss');
+  const formattedEndTime = windowEnd.format('YYYY-MM-DD HH:mm:ss');
+
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        r.reservationID, 
+        r.passengerID, 
+        p.email, 
+        CONCAT(r.Date, ' ', s.Departure_Time) AS trainDepartureTime
+      FROM 
+        reservation r
+      JOIN 
+        passenger p 
+        ON r.passengerID = p.passengerID
+      JOIN 
+        schedule s 
+        ON r.TrainID = s.TrainID AND r.FromStation = s.StationID
+      WHERE 
+        CONCAT(r.Date, ' ', s.Departure_Time) BETWEEN ? AND ?
+        AND r.Paid = false
+    `, [formattedStartTime, formattedEndTime]);
+
+    if (rows.length === 0) {
+      console.log('No reservations to send reminders for at this time.');
+      return;
+    }
+
+    for (const reservation of rows) {
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: reservation.email,
+        subject: 'Payment Reminder for Your Train Reservation',
+        text: `Dear Passenger,
+
+This is a friendly reminder that your reservation (ID: ${reservation.reservationID}) for the train departing at ${new Date(reservation.trainDepartureTime).toLocaleString()} has not been paid yet.
+
+Please complete your payment to confirm your reservation.
+
+Thank you for choosing our service!
+
+Best regards,
+Your Train Company`,
+      };
+
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Reminder email sent to ${reservation.email} for Reservation ID: ${reservation.reservationID}`);
+        // No need to update the database
+      } catch (emailError) {
+        console.error(`Failed to send email to ${reservation.email}: ${emailError.message}`);
+      }
+    }
+  } catch (err) {
+    console.error(`Error fetching reservations: ${err.message}`);
+  }
+};
+
+// Schedule the email reminders to run every minute
+cron.schedule('* * * * *', () => {
+  console.log('Running email reminder task at', new Date().toLocaleString());
+  sendReminderEmails();
+});
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
