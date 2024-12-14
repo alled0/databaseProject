@@ -24,7 +24,7 @@ const BookSeat = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:4000/stations")
+      .get("http://localhost:4000/api/trains/stations")
       .then((response) => {
         setStations(response.data);
       })
@@ -34,7 +34,7 @@ const BookSeat = () => {
       });
 
     axios
-      .get("http://localhost:4000/trains")
+      .get("http://localhost:4000/api/trains/")
       .then((response) => {
         setTrains(response.data);
       })
@@ -78,7 +78,7 @@ const BookSeat = () => {
     setMessage("");
 
     axios
-      .post("http://localhost:4000/bookSeat", form)
+      .post("http://localhost:4000/api/reservations/bookSeat", form)
       .then((response) => {
         if (response.status === 200) {
           setReservationID(response.data.ReservationID); // Store ReservationID

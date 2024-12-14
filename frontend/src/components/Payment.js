@@ -29,7 +29,7 @@ const Payment = () => {
     setError(""); // Clear errors
 
     axios
-      .post("http://localhost:4000/completePayment", { reservationID })
+      .post("http://localhost:4000/api/reservations/completePayment", { reservationID })
       .then((response) => {
         if (response.status === 200) {
           setPaymentStatus("Payment successful! Your reservation is now paid.");

@@ -27,7 +27,7 @@ const AssignStaff = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:4000/assignStaff",
+        "http://localhost:4000/api/assignStaff",
         form
       );
 

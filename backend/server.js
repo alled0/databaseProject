@@ -12,7 +12,11 @@ require("./jobs/emailReminders");
 const app = express();
 const PORT = 4000;
 
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:3000", // Replace with your frontend's origin
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true, // If you need to send cookies or authentication headers
+}));
 app.use(bodyParser.json());
 
 // Use our routes under /api
@@ -28,3 +32,4 @@ app.listen(PORT, () => {
     // console.log("Manually triggering sendReminderEmails...");
   reminderService.sendReminderEmails();
 });
+

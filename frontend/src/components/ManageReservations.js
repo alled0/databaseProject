@@ -18,7 +18,7 @@ const ManageReservations = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:4000/stations")
+      .get("http://localhost:4000/api/trains/stations")
       .then((response) => {
         setStations(response.data);
       })
@@ -63,7 +63,7 @@ const ManageReservations = () => {
       };
 
       const response = await axios.post(
-        "http://localhost:4000/manageReservations",
+        "http://localhost:4000/api/reservations/manageReservations",
         payload
       );
 

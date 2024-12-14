@@ -26,7 +26,7 @@ const Reports = ({ role }) => { // Removed passengerID prop
   useEffect(() => {
     const fetchActiveTrains = async () => {
       try {
-        let url = "http://localhost:4000/reports/active-trains";
+        let url = "http://localhost:4000/api/reports/active-trains";
         if (selectedDate) {
           url += `?date=${encodeURIComponent(selectedDate)}`;
         }
@@ -53,7 +53,7 @@ const Reports = ({ role }) => { // Removed passengerID prop
       setIsLoadingReservations(true);
       setErrorReservations("");
       try {
-        let url = `http://localhost:4000/reports/reservations/${encodeURIComponent(submittedPassengerID)}`;
+        let url = `http://localhost:4000/api/reports/reservations/${encodeURIComponent(submittedPassengerID)}`;
         if (selectedDate) {
           url += `?date=${encodeURIComponent(selectedDate)}`;
         }
@@ -81,7 +81,7 @@ const Reports = ({ role }) => { // Removed passengerID prop
     if (role === "Admin") {
       const fetchTrainStations = async () => {
         try {
-          const response = await fetch("http://localhost:4000/reports/stations-for-trains");
+          const response = await fetch("http://localhost:4000/api/reports/stations-for-trains");
           if (!response.ok) {
             throw new Error("Failed to fetch train stations.");
           }
@@ -104,7 +104,7 @@ const Reports = ({ role }) => { // Removed passengerID prop
       return;
     }
     try {
-      const url = `http://localhost:4000/reports/waitlisted-loyalty/${encodeURIComponent(trainNumber)}`;
+      const url = `http://localhost:4000/api/reports/waitlisted-loyalty/${encodeURIComponent(trainNumber)}`;
       const response = await fetch(url);
       if (!response.ok) {
         const errorData = await response.json();
@@ -125,7 +125,7 @@ const Reports = ({ role }) => { // Removed passengerID prop
       return;
     }
     try {
-      const url = `http://localhost:4000/reports/load-factor/${encodeURIComponent(reportDate)}`;
+      const url = `http://localhost:4000/api/reports/load-factor/${encodeURIComponent(reportDate)}`;
       const response = await fetch(url);
       if (!response.ok) {
         const errorData = await response.json();
@@ -146,7 +146,7 @@ const Reports = ({ role }) => { // Removed passengerID prop
       return;
     }
     try {
-      const url = `http://localhost:4000/reports/dependents/${encodeURIComponent(reportDate)}`;
+      const url = `http://localhost:4000/api/reports/dependents/${encodeURIComponent(reportDate)}`;
       const response = await fetch(url);
       if (!response.ok) {
         const errorData = await response.json();

@@ -12,7 +12,7 @@ const SearchTrains = () => {
   useEffect(() => {
     // Fetch stations
     axios
-      .get("http://localhost:4000/stations")
+      .get("http://localhost:4000/api/trains/stations")
       .then((response) => {
         setStations(response.data);
       })
@@ -33,7 +33,7 @@ const SearchTrains = () => {
     }
     setError("");
     axios
-      .get("http://localhost:4000/searchTrains", {
+      .get("http://localhost:4000/api/trains/searchTrains", {
         params: {
           fromStation: fromStation,
           toStation: toStation,

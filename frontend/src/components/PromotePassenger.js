@@ -16,7 +16,7 @@ const PromotePassenger = () => {
     setSuccessMessage("");
 
     try {
-      const response = await fetch("http://localhost:4000/promotePassenger", {
+      const response = await fetch("http://localhost:4000/api/promotePassenger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ passengerID }),
