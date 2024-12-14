@@ -873,8 +873,8 @@ transporter.verify((error, success) => {
 
 // Function to Send Reminder Emails
 const sendReminderEmails = async () => {
-  console.log('Inside sendReminderEmails, pool is:', pool);
-  console.log(`Type of pool: ${typeof pool}`); // Should output 'object'
+  // console.log('Inside sendReminderEmails, pool is:', pool);
+  // console.log(`Type of pool: ${typeof pool}`); // Should output 'object'
 
   const tz = 'Asia/Riyadh'; // Set your desired time zone
   const now = moment().tz(tz);
@@ -890,23 +890,22 @@ const sendReminderEmails = async () => {
 
   try {
     const [rows] = await pool.query(`
-      SELECT 
-        r.reservationID, 
-        r.passengerID, 
-        p.email, 
-        CONCAT(r.Date, ' ', s.Departure_Time) AS trainDepartureTime
-      FROM 
-        reservation r
-      JOIN 
-        passenger p 
-        ON r.passengerID = p.passengerID
-      JOIN 
-        schedule s 
-        ON r.TrainID = s.TrainID AND r.FromStation = s.StationID
-      WHERE 
-        CONCAT(r.Date, ' ', s.Departure_Time) BETWEEN ? AND ?
-        AND r.Paid = false
+     SELECT 
+  r.reservationID, 
+  r.passengerID, 
+  p.email, 
+  CONCAT(r.Date, ' ', s.Departure_Time) AS trainDepartureTime
+FROM 
+  reservation r
+JOIN 
+  passenger p ON r.passengerID = p.passengerID
+JOIN 
+  schedule s ON r.TrainID = s.TrainID AND r.FromStation = s.StationID
+WHERE 
+  CONCAT(r.Date, ' ', s.Departure_Time) BETWEEN '2024-12-15 03:00:00' AND '2024-12-15 03:01:00'
+  AND r.Paid = 0;
     `, [formattedStartTime, formattedEndTime]);
+    console.log(`Querying reservations with start time: ${formattedStartTime}, end time: ${formattedEndTime}`);
 
     if (rows.length === 0) {
       console.log('No reservations to send reminders for at this time.');
@@ -945,11 +944,10 @@ Your Train Company`,
 
 // Schedule the email reminders to run every minute
 cron.schedule('* * * * *', () => {
-  console.log('Running email reminder task at', new Date().toLocaleString());
-  sendReminderEmails();
+  console.log("Sending unpaid reminders manually...");
+sendReminderEmails();
 });
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
