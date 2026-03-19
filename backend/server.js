@@ -8,12 +8,22 @@ const routes = require("./routes");
 require("./jobs/emailReminders");
 
 const app = express();
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
+
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "https://databaseproject-production-b741.up.railway.app",
+];
+
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
 
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001"],
+  origin: allowedOrigins,
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  credentials: true, // If you need to send cookies or authentication headers
+  credentials: true,
 }));
 app.use(bodyParser.json());
 
