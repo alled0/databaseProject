@@ -12,6 +12,7 @@ import PromotePassenger from "./components/PromotePassenger";
 import Payment from "./components/Payment";
 import Reports from './components/Reports';
 import Dependents from './components/Dependents';
+import Footer from './components/Footer';
 
 function App() {
   const [role, setRole] = useState(() => localStorage.getItem("role") || "");
@@ -45,7 +46,8 @@ function App() {
   return (
     <Router>
       {role && <Navbar role={role} onLogout={handleLogout} />}
-      <div>
+      <div style={{ minHeight: "calc(100vh - 60px)", display: "flex", flexDirection: "column" }}>
+      <div style={{ flex: 1 }}>
         <Routes>
           <Route path="/" element={<Login onLogin={handleLogin} />} />
           <Route path="/register" element={<Register onLogin={handleLogin} />} />
@@ -58,6 +60,8 @@ function App() {
           <Route path="/assign-staff" element={requireRole("Admin", <AssignStaff />)} />
           <Route path="/promote-passenger" element={requireRole("Admin", <PromotePassenger />)} />
         </Routes>
+      </div>
+      {role && <Footer />}
       </div>
     </Router>
   );
