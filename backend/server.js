@@ -44,7 +44,7 @@ app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 app.use("/api", routes);
 
 // Start the server
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
