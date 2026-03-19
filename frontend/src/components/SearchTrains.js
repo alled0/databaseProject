@@ -101,7 +101,7 @@ const SearchTrains = () => {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               {trains.map((train) => (
-                <div key={train.TrainID} style={trainCardStyle}>
+                <div key={train.TrainID} className="train-card">
                   <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
                     <div style={trainIconStyle}>🚆</div>
                     <div>
@@ -115,7 +115,7 @@ const SearchTrains = () => {
                   </div>
                   <button
                     onClick={() => handleBook(train.TrainID)}
-                    className="button auto"
+                    className="button auto train-card-btn"
                     style={{ padding: "9px 20px" }}
                   >
                     Book Seat
@@ -128,17 +128,6 @@ const SearchTrains = () => {
       )}
     </div>
   );
-};
-
-const trainCardStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  padding: "16px 18px",
-  background: "#F8FAFC",
-  border: "1px solid #E2E8F0",
-  borderRadius: "10px",
-  transition: "border-color 0.18s",
 };
 
 const trainIconStyle = {

@@ -408,16 +408,138 @@ hr {
 .text-muted { color: var(--gray-500); font-size: 14px; }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   NAVBAR MOBILE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.nav-hamburger {
+  display: none;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.8);
+  border-radius: 7px;
+  padding: 6px 11px;
+  cursor: pointer;
+  font-size: 17px;
+  line-height: 1;
+  transition: background 0.18s, border-color 0.18s;
+}
+
+.nav-hamburger:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.3);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TRAIN CARD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.train-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  transition: border-color 0.18s;
+  gap: 12px;
+}
+
+.train-card-btn {
+  flex-shrink: 0;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    RESPONSIVE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@media (max-width: 720px) {
+  .nav-hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: #0F2137;
+    padding: 8px 16px 16px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+    border-top: 1px solid rgba(255,255,255,0.07);
+    z-index: 99;
+    gap: 2px;
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .nav-links li {
+    width: 100%;
+    margin-left: 0 !important;
+  }
+
+  .nav-links a {
+    width: 100%;
+    padding: 13px 14px !important;
+    font-size: 14px !important;
+    align-items: flex-start !important;
+    border-radius: 8px;
+  }
+
+  .nav-links button {
+    width: 100%;
+    text-align: left;
+    padding: 13px 14px !important;
+    font-size: 14px !important;
+    border-radius: 8px;
+    margin-top: 4px;
+  }
+}
+
 @media (max-width: 640px) {
   .container, .container-wide {
-    margin: 12px;
-    padding: 24px 18px;
+    margin: 10px;
+    padding: 20px 16px;
     border-radius: var(--radius);
   }
 
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .page-title {
+    font-size: 17px;
+    margin-bottom: 20px;
+  }
+
+  .train-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .train-card-btn {
+    width: 100%;
+  }
+
+  .action-selector {
+    flex-wrap: wrap;
+  }
+
+  .action-btn {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 120px;
   }
 }

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 
 const TrainIcon = () => (
@@ -8,6 +8,8 @@ const TrainIcon = () => (
 );
 
 const Navbar = ({ role, onLogout }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   const passengerLinks = [
     { path: "/searchtrain", label: "Search Trains" },
     { path: "/book", label: "Book Seat" },
@@ -27,9 +29,12 @@ const Navbar = ({ role, onLogout }) => {
   const location = useLocation();
 
   const handleLogout = () => {
+    setMenuOpen(false);
     onLogout();
     navigate("/");
   };
+
+  const closeMenu = () => setMenuOpen(false);
 
   return (
     <nav style={styles.nav}>
@@ -41,13 +46,22 @@ const Navbar = ({ role, onLogout }) => {
         <span style={styles.roleBadge}>{role}</span>
       </div>
 
-      <ul style={styles.ul}>
+      <button
+        className="nav-hamburger"
+        onClick={() => setMenuOpen((o) => !o)}
+        aria-label="Toggle menu"
+      >
+        {menuOpen ? "✕" : "☰"}
+      </button>
+
+      <ul className={`nav-links${menuOpen ? " open" : ""}`}>
         {links.map((link) => {
           const isActive = location.pathname === link.path;
           return (
             <li key={link.path} style={styles.li}>
               <Link
                 to={link.path}
+                onClick={closeMenu}
                 style={{ ...styles.link, ...(isActive ? styles.activeLink : {}) }}
               >
                 {link.label}
@@ -114,14 +128,6 @@ const styles = {
     letterSpacing: "0.4px",
     textTransform: "uppercase",
     fontFamily: "'Inter', sans-serif",
-  },
-  ul: {
-    listStyle: "none",
-    display: "flex",
-    alignItems: "center",
-    gap: "2px",
-    margin: 0,
-    padding: 0,
   },
   li: {
     display: "inline-flex",
