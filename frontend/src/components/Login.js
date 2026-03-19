@@ -90,8 +90,61 @@ const Login = ({ onLogin }) => {
       <button onClick={handleLogin} className="button" disabled={loading}>
         {loading ? "Logging in..." : "Login"}
       </button>
+
+      <div style={demoBoxStyle}>
+        <p style={demoTitleStyle}>Demo Credentials</p>
+        <div style={demoRowStyle}>
+          <span style={demoBadge("passenger")}>Passenger</span>
+          <span style={demoText}>passenger1@example.com / pass123</span>
+        </div>
+        <div style={demoRowStyle}>
+          <span style={demoBadge("admin")}>Admin</span>
+          <span style={demoText}>staff1@example.com / staff123</span>
+        </div>
+      </div>
     </div>
   );
+};
+
+const demoBoxStyle = {
+  marginTop: "24px",
+  padding: "14px 16px",
+  background: "#f0f4ff",
+  border: "1.5px solid #d0d9f0",
+  borderRadius: "10px",
+  fontSize: "13px",
+};
+
+const demoTitleStyle = {
+  fontWeight: "700",
+  color: "#2E3B4E",
+  marginBottom: "10px",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.5px",
+};
+
+const demoRowStyle = {
+  display: "flex",
+  alignItems: "center",
+  gap: "10px",
+  marginBottom: "6px",
+};
+
+const demoBadge = (role) => ({
+  padding: "2px 8px",
+  borderRadius: "4px",
+  fontSize: "11px",
+  fontWeight: "700",
+  background: role === "admin" ? "#2E3B4E" : "#4CAF50",
+  color: "#fff",
+  whiteSpace: "nowrap",
+});
+
+const demoText = {
+  color: "#444",
+  fontFamily: "monospace",
+  fontSize: "12px",
 };
 
 export default Login;
