@@ -8,6 +8,7 @@ const reportController = require("../controllers/reportController");
 const authController = require("../controllers/authController");
 const staffController = require("../controllers/staffController");
 const promotionController = require("../controllers/promotionController");
+const dependentController = require("../controllers/dependentController");
 
 // Trains and Reservations
 router.use("/trains", trainRoutes);
@@ -23,6 +24,11 @@ router.get("/staff", staffController.getAllStaff);
 
 // Promotion
 router.post("/promotePassenger", promotionController.promotePassenger);
+
+// Dependents
+router.get("/dependents/:passengerID", dependentController.getDependents);
+router.post("/dependents", dependentController.addDependent);
+router.delete("/dependents/:dependentID", dependentController.deleteDependent);
 
 // Reports
 router.get("/reports/active-trains", reportController.getActiveTrains);

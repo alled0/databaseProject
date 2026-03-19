@@ -11,6 +11,7 @@ const Navbar = ({ role, onLogout }) => {
   const passengerLinks = [
     { path: "/searchtrain", label: "Search Trains" },
     { path: "/book", label: "Book Seat" },
+    { path: "/dependents", label: "Dependents" },
     { path: "/reports", label: "Reports" },
   ];
 

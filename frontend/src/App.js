@@ -11,6 +11,7 @@ import AssignStaff from "./components/AssignStaff";
 import PromotePassenger from "./components/PromotePassenger";
 import Payment from "./components/Payment";
 import Reports from './components/Reports';
+import Dependents from './components/Dependents';
 
 function App() {
   const [role, setRole] = useState(() => localStorage.getItem("role") || "");
@@ -52,6 +53,7 @@ function App() {
           <Route path="/book" element={requireRole("Passenger", <BookSeat email={userEmail} />)} />
           <Route path="/payment/:reservationID" element={requireRole("Passenger", <Payment />)} />
           <Route path="/reports" element={role ? <Reports role={role} passengerID={passengerID} /> : <Navigate to="/" replace />} />
+          <Route path="/dependents" element={requireRole("Passenger", <Dependents passengerID={passengerID} />)} />
           <Route path="/manage-reservations" element={requireRole("Admin", <ManageReservations />)} />
           <Route path="/assign-staff" element={requireRole("Admin", <AssignStaff />)} />
           <Route path="/promote-passenger" element={requireRole("Admin", <PromotePassenger />)} />
