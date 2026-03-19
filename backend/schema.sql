@@ -12,7 +12,6 @@ DROP TABLE IF EXISTS Track;
 DROP TABLE IF EXISTS Station;
 DROP TABLE IF EXISTS Train;
 DROP TABLE IF EXISTS Staff;
-DROP EVENT IF EXISTS NotifyPassengersBeforeDeparture;
 
 
 -- Train Table
@@ -49,26 +48,6 @@ CREATE TABLE Schedule (
   FOREIGN KEY (TrainID) REFERENCES Train(TrainID),
   FOREIGN KEY (StationID) REFERENCES Station(StationID)
 );
-
-
-CREATE EVENT NotifyPassengersBeforeDeparture
-ON SCHEDULE EVERY 1 HOUR
-DO
-BEGIN
-  UPDATE Reservation r
-  JOIN Schedule s ON r.TrainID = s.TrainID
-  SET r.ReminderSent = 1  -- Assuming 'ReminderSent' is an available column
-  WHERE TIMESTAMPDIFF(HOUR, NOW(), s.Departure_Time) = 3
-    AND r.ReminderSent = 0;
-
-  -- Optional: Log to console or fetch for backend processing
-  SELECT PassengerID, CONCAT('Reminder: Your train is departing in 3 hours.') AS Message
-  FROM Reservation r
-  JOIN Schedule s ON r.TrainID = s.TrainID
-  WHERE TIMESTAMPDIFF(HOUR, NOW(), s.Departure_Time) = 3
-    AND r.ReminderSent = 1;
-END;
-
 
 
 

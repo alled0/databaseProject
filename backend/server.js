@@ -14,6 +14,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
   "https://databaseproject-production-b741.up.railway.app",
+  "https://saudi-railways.vercel.app",
 ];
 
 if (process.env.FRONTEND_URL) {
