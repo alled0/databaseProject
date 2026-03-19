@@ -14,6 +14,7 @@ router.use("/trains", trainRoutes);
 router.use("/reservations", reservationRoutes);
 
 // Auth
+router.post("/register", authController.register);
 router.post("/login", authController.login);
 
 // Staff

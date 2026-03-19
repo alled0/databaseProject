@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import SearchTrains from "./components/SearchTrains";
 import BookSeat from "./components/BookSeat";
 import Login from "./components/Login";
+import Register from "./components/Register";
 import ManageReservations from "./components/ManageReservations";
 import AssignStaff from "./components/AssignStaff";
 import PromotePassenger from "./components/PromotePassenger";
@@ -46,6 +47,7 @@ function App() {
       <div style={styles.container}>
         <Routes>
           <Route path="/" element={<Login onLogin={handleLogin} />} />
+          <Route path="/register" element={<Register onLogin={handleLogin} />} />
           <Route path="/searchtrain" element={requireRole("Passenger", <SearchTrains />)} />
           <Route path="/book" element={requireRole("Passenger", <BookSeat email={userEmail} />)} />
           <Route path="/payment/:reservationID" element={requireRole("Passenger", <Payment />)} />

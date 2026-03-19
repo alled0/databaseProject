@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import "../style/Login.css";
 import API_URL from "../config";
 
@@ -90,6 +90,13 @@ const Login = ({ onLogin }) => {
       <button onClick={handleLogin} className="button" disabled={loading}>
         {loading ? "Logging in..." : "Login"}
       </button>
+
+      <p style={{ textAlign: "center", marginTop: "16px", fontSize: "13px", color: "#555" }}>
+        New here?{" "}
+        <Link to="/register" style={{ color: "#2E3B4E", fontWeight: "600" }}>
+          Create an account
+        </Link>
+      </p>
 
       <div style={demoBoxStyle}>
         <p style={demoTitleStyle}>Demo Credentials</p>
