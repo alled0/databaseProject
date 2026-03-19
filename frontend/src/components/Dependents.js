@@ -11,18 +11,18 @@ const Dependents = ({ passengerID }) => {
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(null);
 
-  const fetchDependents = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/dependents/${passengerID}`);
-      const data = await res.json();
-      if (res.ok) setDependents(data);
-    } catch {
-      setError("Failed to load dependents.");
-    }
-  };
-
   useEffect(() => {
-    if (passengerID) fetchDependents();
+    if (!passengerID) return;
+    const fetchDependents = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/dependents/${passengerID}`);
+        const data = await res.json();
+        if (res.ok) setDependents(data);
+      } catch {
+        setError("Failed to load dependents.");
+      }
+    };
+    fetchDependents();
   }, [passengerID]);
 
   const handleAdd = async () => {
