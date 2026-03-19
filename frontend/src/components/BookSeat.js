@@ -58,7 +58,7 @@ const BookSeat = ({ email: propEmail }) => {
       .post(`${API_URL}/api/reservations/bookSeat`, form)
       .then((response) => {
         setReservationID(response.data.ReservationID);
-        setMessage(`Booking successful! Your Reservation ID is #${response.data.ReservationID}.`);
+        setMessage(`Booking confirmed! Your Reservation ID is #${response.data.ReservationID}.`);
       })
       .catch((err) => {
         setError(err.response?.data?.error || "A server error occurred. Please try again later.");
@@ -88,8 +88,15 @@ const BookSeat = ({ email: propEmail }) => {
       {error && <div className="alert alert-error">{error}</div>}
 
       {message ? (
-        <div>
-          <div className="alert alert-success">{message}</div>
+        <div style={{ textAlign: "center", padding: "12px 0" }}>
+          <div style={successIconStyle}>✓</div>
+          <h3 style={{ color: "#065F46", margin: "0 0 8px" }}>Booking Confirmed!</h3>
+          <p style={{ color: "#64748B", marginBottom: "24px" }}>
+            Your reservation ID is{" "}
+            <strong style={{ color: "#006B3C", fontFamily: "monospace" }}>
+              #{reservationID}
+            </strong>
+          </p>
           <button
             onClick={() => navigate(`/payment/${reservationID}`)}
             className="button"
@@ -98,8 +105,8 @@ const BookSeat = ({ email: propEmail }) => {
           </button>
           <button
             onClick={resetForm}
-            className="button secondary"
-            style={{ marginTop: "8px" }}
+            className="button ghost"
+            style={{ marginTop: "10px" }}
           >
             Book Another Seat
           </button>
@@ -118,79 +125,96 @@ const BookSeat = ({ email: propEmail }) => {
             </select>
           </div>
 
-          <div className="form-group">
-            <label className="label">Date</label>
-            <input
-              type="date"
-              name="Date"
-              value={form.Date}
-              onChange={handleChange}
-              className="input"
-            />
+          <div className="form-row">
+            <div className="form-group">
+              <label className="label">From Station</label>
+              <select name="FromStation" value={form.FromStation} onChange={handleChange} className="input">
+                <option value="">Select Station</option>
+                {stations.map((s) => (
+                  <option key={s.StationID} value={s.StationID}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="label">To Station</label>
+              <select name="ToStation" value={form.ToStation} onChange={handleChange} className="input">
+                <option value="">Select Station</option>
+                {stations.map((s) => (
+                  <option key={s.StationID} value={s.StationID}>{s.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="form-group">
-            <label className="label">From Station</label>
-            <select name="FromStation" value={form.FromStation} onChange={handleChange} className="input">
-              <option value="">Select Station</option>
-              {stations.map((s) => (
-                <option key={s.StationID} value={s.StationID}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="label">Date</label>
+              <input
+                type="date"
+                name="Date"
+                value={form.Date}
+                onChange={handleChange}
+                className="input"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="label">Coach Type</label>
+              <select name="CoachType" value={form.CoachType} onChange={handleChange} className="input">
+                <option value="Economy">Economy</option>
+                <option value="Business">Business</option>
+              </select>
+            </div>
           </div>
 
-          <div className="form-group">
-            <label className="label">To Station</label>
-            <select name="ToStation" value={form.ToStation} onChange={handleChange} className="input">
-              <option value="">Select Station</option>
-              {stations.map((s) => (
-                <option key={s.StationID} value={s.StationID}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="label">Seat Number</label>
+              <input
+                type="text"
+                name="SeatNumber"
+                value={form.SeatNumber}
+                onChange={handleChange}
+                placeholder="e.g., 12A"
+                className="input"
+              />
+            </div>
 
-          <div className="form-group">
-            <label className="label">Coach Type</label>
-            <select name="CoachType" value={form.CoachType} onChange={handleChange} className="input">
-              <option value="Economy">Economy</option>
-              <option value="Business">Business</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label className="label">Seat Number</label>
-            <input
-              type="text"
-              name="SeatNumber"
-              value={form.SeatNumber}
-              onChange={handleChange}
-              placeholder="e.g., 12A"
-              className="input"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="label">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              readOnly
-              className="input"
-            />
+            <div className="form-group">
+              <label className="label">Email</label>
+              <input
+                type="email"
+                name="email"
+                value={form.email}
+                readOnly
+                className="input"
+              />
+            </div>
           </div>
 
           <button onClick={submitBooking} className="button" disabled={loading}>
-            {loading ? "Booking..." : "Book Seat"}
+            {loading ? "Booking…" : "Book Seat"}
           </button>
         </>
       )}
     </div>
   );
+};
+
+const successIconStyle = {
+  width: "64px",
+  height: "64px",
+  background: "#ECFDF5",
+  border: "2px solid #A7F3D0",
+  borderRadius: "50%",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  margin: "0 auto 16px",
+  fontSize: "28px",
+  color: "#059669",
+  fontWeight: "700",
 };
 
 export default BookSeat;

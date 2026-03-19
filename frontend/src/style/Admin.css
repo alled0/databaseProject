@@ -1,31 +1,33 @@
-/* Admin.css — page-specific overrides only. Global styles are in index.css */
+/* Admin pages — relies on global index.css design system */
 
-.container {
-  max-width: 640px;
-}
-
-/* Action selector tabs */
-.action-tabs {
+.action-selector {
   display: flex;
   gap: 8px;
   margin-bottom: 24px;
 }
 
-.action-tab {
+.action-btn {
   flex: 1;
-  padding: 9px;
-  border: 1.5px solid #d1d5db;
+  padding: 9px 12px;
+  border: 1.5px solid #E2E8F0;
   border-radius: 8px;
-  background: #fafafa;
-  font-size: 14px;
+  background: #F8FAFC;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-  color: #555;
+  transition: all 0.18s;
+  color: #475569;
+  font-family: 'Inter', sans-serif;
 }
 
-.action-tab.active {
-  border-color: #4CAF50;
-  background: #e8f5e9;
-  color: #2e7d32;
+.action-btn:hover {
+  border-color: #006B3C;
+  background: #F0FBF5;
+  color: #006B3C;
+}
+
+.action-btn.active {
+  border-color: #006B3C;
+  background: #E6F4EC;
+  color: #004D2B;
 }

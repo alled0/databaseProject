@@ -40,10 +40,18 @@ const Payment = () => {
   };
 
   return (
-    <div className="container">
-      <div className="payment-icon">{paymentStatus ? "✅" : "💳"}</div>
-      <h3 className="heading">{paymentStatus ? "Payment Complete" : "Complete Payment"}</h3>
-      <p className="reservation-id">Reservation ID: <strong>#{reservationID}</strong></p>
+    <div className="container" style={{ maxWidth: "440px", textAlign: "center" }}>
+      <div className={`payment-icon-wrap ${paymentStatus ? "icon-success" : "icon-pending"}`}>
+        {paymentStatus ? "✓" : "💳"}
+      </div>
+
+      <h3 className="payment-title">
+        {paymentStatus ? "Payment Complete" : "Complete Payment"}
+      </h3>
+
+      <p className="payment-id">
+        Reservation ID: <strong>#{reservationID}</strong>
+      </p>
 
       {error && <div className="alert alert-error">{error}</div>}
 
@@ -52,9 +60,9 @@ const Payment = () => {
       ) : (
         <div className="payment-actions">
           <button onClick={handlePayment} className="button" disabled={loading}>
-            {loading ? "Processing..." : "Pay Now"}
+            {loading ? "Processing…" : "Pay Now"}
           </button>
-          <button onClick={() => navigate(-1)} className="button backButton">
+          <button onClick={() => navigate(-1)} className="button ghost">
             Go Back
           </button>
         </div>

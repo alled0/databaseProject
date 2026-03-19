@@ -44,7 +44,7 @@ function App() {
   return (
     <Router>
       {role && <Navbar role={role} onLogout={handleLogout} />}
-      <div style={styles.container}>
+      <div>
         <Routes>
           <Route path="/" element={<Login onLogin={handleLogin} />} />
           <Route path="/register" element={<Register onLogin={handleLogin} />} />
@@ -61,10 +61,5 @@ function App() {
   );
 }
 
-const styles = {
-  container: {
-    padding: "20px",
-  },
-};
 
 export default App;

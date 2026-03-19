@@ -38,6 +38,7 @@ const AssignStaff = () => {
   return (
     <div className="container">
       <h2 className="page-title">Assign Staff to Train</h2>
+
       {message && <div className="alert alert-success">{message}</div>}
       {error && <div className="alert alert-error">{error}</div>}
 
@@ -71,7 +72,9 @@ const AssignStaff = () => {
         </select>
       </div>
 
-      <button onClick={handleAssign} className="button">Assign Staff</button>
+      <button onClick={handleAssign} className="button">
+        Assign Staff
+      </button>
     </div>
   );
 };

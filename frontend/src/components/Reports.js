@@ -4,18 +4,15 @@ import "../style/Report.css";
 import API_URL from "../config";
 
 const Reports = ({ role, passengerID: propPassengerID }) => {
-  // State variables for Passenger Reports
   const [activeTrains, setActiveTrains] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
 
-  // Passenger ID input — pre-filled from login session
   const [inputPassengerID, setInputPassengerID] = useState(propPassengerID || "");
   const [submittedPassengerID, setSubmittedPassengerID] = useState(propPassengerID || "");
   const [isLoadingReservations, setIsLoadingReservations] = useState(false);
   const [errorReservations, setErrorReservations] = useState("");
 
-  // State variables for Admin Reports
   const [trainStations, setTrainStations] = useState([]);
   const [waitlist, setWaitlist] = useState([]);
   const [loadFactor, setLoadFactor] = useState([]);
@@ -26,99 +23,71 @@ const Reports = ({ role, passengerID: propPassengerID }) => {
   const [loadFactorError, setLoadFactorError] = useState("");
   const [dependentsError, setDependentsError] = useState("");
 
-  // Fetch Active Trains based on selected date (Passenger and Admin)
   useEffect(() => {
     const fetchActiveTrains = async () => {
       try {
         let url = `${API_URL}/api/reports/active-trains`;
-        if (selectedDate) {
-          url += `?date=${encodeURIComponent(selectedDate)}`;
-        }
+        if (selectedDate) url += `?date=${encodeURIComponent(selectedDate)}`;
         const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error("Failed to fetch active trains.");
-        }
-        const data = await response.json();
-        setActiveTrains(data);
-      } catch (error) {
-        console.error(error);
+        if (!response.ok) throw new Error("Failed to fetch active trains.");
+        setActiveTrains(await response.json());
+      } catch {
         setActiveTrains([]);
       }
     };
-
     fetchActiveTrains();
   }, [selectedDate]);
 
-  // Fetch Reservations for Passenger based on submitted Passenger ID and selected date
   useEffect(() => {
     const fetchReservations = async () => {
       if (!submittedPassengerID) return;
-
       setIsLoadingReservations(true);
       setErrorReservations("");
       try {
         let url = `${API_URL}/api/reports/reservations/${encodeURIComponent(submittedPassengerID)}`;
-        if (selectedDate) {
-          url += `?date=${encodeURIComponent(selectedDate)}`;
-        }
+        if (selectedDate) url += `?date=${encodeURIComponent(selectedDate)}`;
         const response = await fetch(url);
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || "Failed to fetch reservations.");
         }
-        const data = await response.json();
-        setReservations(data);
+        setReservations(await response.json());
       } catch (error) {
-        console.error(error);
         setReservations([]);
         setErrorReservations(error.message);
       } finally {
         setIsLoadingReservations(false);
       }
     };
-
     fetchReservations();
   }, [submittedPassengerID, selectedDate]);
 
-  // Fetch Stations for Each Train (Admin only)
   useEffect(() => {
     if (role === "Admin") {
       const fetchTrainStations = async () => {
         try {
           const response = await fetch(`${API_URL}/api/reports/stations-for-trains`);
-          if (!response.ok) {
-            throw new Error("Failed to fetch train stations.");
-          }
-          const data = await response.json();
-          setTrainStations(data);
-        } catch (error) {
-          console.error(error);
+          if (!response.ok) throw new Error("Failed to fetch train stations.");
+          setTrainStations(await response.json());
+        } catch {
           setTrainStations([]);
         }
       };
-
       fetchTrainStations();
     }
   }, [role]);
 
-  // Handler Functions for Admin Reports
   const handleGetWaitlisted = async () => {
     setWaitlistError("");
-    if (!trainNumber) {
-      setWaitlistError("Please enter a Train Number.");
-      return;
-    }
+    if (!trainNumber) { setWaitlistError("Please enter a Train Number."); return; }
     try {
-      const url = `${API_URL}/api/reports/waitlisted-loyalty/${encodeURIComponent(trainNumber)}`;
-      const response = await fetch(url);
+      const response = await fetch(`${API_URL}/api/reports/waitlisted-loyalty/${encodeURIComponent(trainNumber)}`);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to fetch waitlisted passengers.");
       }
-      const data = await response.json();
-      setWaitlist(data);
+      setWaitlist(await response.json());
     } catch (error) {
-      console.error(error);
       setWaitlist([]);
       setWaitlistError(error.message);
     }
@@ -126,21 +95,15 @@ const Reports = ({ role, passengerID: propPassengerID }) => {
 
   const handleGetLoadFactor = async () => {
     setLoadFactorError("");
-    if (!reportDate) {
-      setLoadFactorError("Please select a date.");
-      return;
-    }
+    if (!reportDate) { setLoadFactorError("Please select a date."); return; }
     try {
-      const url = `${API_URL}/api/reports/load-factor/${encodeURIComponent(reportDate)}`;
-      const response = await fetch(url);
+      const response = await fetch(`${API_URL}/api/reports/load-factor/${encodeURIComponent(reportDate)}`);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to fetch load factor.");
       }
-      const data = await response.json();
-      setLoadFactor(data);
+      setLoadFactor(await response.json());
     } catch (error) {
-      console.error(error);
       setLoadFactor([]);
       setLoadFactorError(error.message);
     }
@@ -148,27 +111,20 @@ const Reports = ({ role, passengerID: propPassengerID }) => {
 
   const handleGetDependents = async () => {
     setDependentsError("");
-    if (!reportDate) {
-      setDependentsError("Please select a date.");
-      return;
-    }
+    if (!reportDate) { setDependentsError("Please select a date."); return; }
     try {
-      const url = `${API_URL}/api/reports/dependents/${encodeURIComponent(reportDate)}`;
-      const response = await fetch(url);
+      const response = await fetch(`${API_URL}/api/reports/dependents/${encodeURIComponent(reportDate)}`);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to fetch dependents.");
       }
-      const data = await response.json();
-      setDependents(data);
+      setDependents(await response.json());
     } catch (error) {
-      console.error(error);
       setDependents([]);
       setDependentsError(error.message);
     }
   };
 
-  // Handler for Passenger ID submission
   const handlePassengerIDSubmit = (e) => {
     e.preventDefault();
     if (!inputPassengerID.trim()) {
@@ -179,14 +135,14 @@ const Reports = ({ role, passengerID: propPassengerID }) => {
   };
 
   return (
-    <div className="container">
-      <h1 className="heading">Reports</h1>
+    <div className="container-wide">
+      <h1 className="page-title">Reports</h1>
 
-      {/* Active Trains Section (Accessible to All Users) */}
+      {/* ── Active Trains ── */}
       <div className="report-section">
-        <h2>Active Trains</h2>
-        <div className="form-group">
-          <label className="label">Select a Date (default is today)</label>
+        <h2 className="section-title">Active Trains</h2>
+        <div className="form-group" style={{ maxWidth: "260px" }}>
+          <label className="label">Filter by Date</label>
           <input
             className="input"
             type="date"
@@ -196,9 +152,9 @@ const Reports = ({ role, passengerID: propPassengerID }) => {
         </div>
 
         {activeTrains.length === 0 ? (
-          <p>No active trains for the selected date.</p>
+          <p className="text-muted">No active trains for the selected date.</p>
         ) : (
-          <div className="table-responsive">
+          <div className="report-table-wrap">
             <table className="report-table">
               <thead>
                 <tr>
@@ -219,83 +175,77 @@ const Reports = ({ role, passengerID: propPassengerID }) => {
         )}
       </div>
 
-      {/* Passenger Reservations Section */}
+      {/* ── Passenger Reservations ── */}
       {role === "Passenger" && (
         <>
           <hr />
           <div className="report-section">
-            <h2>Your Reservation Details</h2>
-            {/* Passenger ID Input Form */}
+            <h2 className="section-title">Your Reservations</h2>
+
             <form onSubmit={handlePassengerIDSubmit} className="passenger-id-form">
               <div className="form-group">
-                <label className="label">Enter Your Passenger ID</label>
+                <label className="label">Passenger ID</label>
                 <input
                   className="input"
                   type="text"
-                  placeholder="Passenger ID"
+                  placeholder="Enter your Passenger ID"
                   value={inputPassengerID}
                   onChange={(e) => setInputPassengerID(e.target.value)}
                 />
               </div>
-              <button type="submit" className="button report-button">
+              <button type="submit" className="button auto report-button">
                 Get Reservations
               </button>
             </form>
 
-            {/* Loading Indicator */}
-            {isLoadingReservations && <p>Loading reservations...</p>}
-
-            {/* Error Message */}
+            {isLoadingReservations && <p className="text-muted">Loading reservations…</p>}
             {errorReservations && <p className="error-message">{errorReservations}</p>}
 
-            {/* Reservations Table */}
             {!isLoadingReservations && !errorReservations && submittedPassengerID && (
-              <>
-                {reservations.length === 0 ? (
-                  <p className="no-reservations">No reservation details found for the entered Passenger ID.</p>
-                ) : (
-                  <div className="table-responsive">
-                    <table className="report-table">
-                      <thead>
-                        <tr>
-                          <th>Reservation ID</th>
-                          <th>Train Name</th>
-                          <th>Date</th>
-                          <th>From Station</th>
-                          <th>To Station</th>
+              reservations.length === 0 ? (
+                <p className="no-reservations">No reservations found for this Passenger ID.</p>
+              ) : (
+                <div className="report-table-wrap">
+                  <table className="report-table">
+                    <thead>
+                      <tr>
+                        <th>Reservation ID</th>
+                        <th>Train</th>
+                        <th>Date</th>
+                        <th>From</th>
+                        <th>To</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {reservations.map((resv) => (
+                        <tr key={resv.ReservationID}>
+                          <td data-label="Reservation ID">{resv.ReservationID}</td>
+                          <td data-label="Train">{resv.English_name}</td>
+                          <td data-label="Date">{resv.Date}</td>
+                          <td data-label="From">{resv.FromName}</td>
+                          <td data-label="To">{resv.ToName}</td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {reservations.map((resv) => (
-                          <tr key={resv.ReservationID}>
-                            <td data-label="Reservation ID">{resv.ReservationID}</td>
-                            <td data-label="Train Name">{resv.English_name}</td>
-                            <td data-label="Date">{resv.Date}</td>
-                            <td data-label="From Station">{resv.FromName}</td>
-                            <td data-label="To Station">{resv.ToName}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )
             )}
           </div>
         </>
       )}
 
-      {/* Admin Reports Sections */}
+      {/* ── Admin Reports ── */}
       {role === "Admin" && (
         <>
           <hr />
-          {/* Report #2: Stations for Each Train */}
+          {/* Stations for Each Train */}
           <div className="report-section">
-            <h2>Stations for Each Train</h2>
+            <h2 className="section-title">Stations for Each Train</h2>
             {trainStations.length === 0 ? (
-              <p>No stations found.</p>
+              <p className="text-muted">No stations found.</p>
             ) : (
-              <div className="table-responsive">
+              <div className="report-table-wrap">
                 <table className="report-table">
                   <thead>
                     <tr>
@@ -320,25 +270,27 @@ const Reports = ({ role, passengerID: propPassengerID }) => {
 
           <hr />
 
-          {/* Report #4: Waitlisted Loyalty Passengers */}
+          {/* Waitlisted Loyalty Passengers */}
           <div className="report-section">
-            <h2>Waitlisted Loyalty Passengers by Train Number</h2>
-            <div className="form-group">
-              <label className="label">Train Number</label>
-              <input
-                className="input"
-                type="text"
-                placeholder="Enter Train Number"
-                value={trainNumber}
-                onChange={(e) => setTrainNumber(e.target.value)}
-              />
+            <h2 className="section-title">Waitlisted Loyalty Passengers</h2>
+            <div style={{ display: "flex", gap: "12px", alignItems: "flex-end", flexWrap: "wrap", marginBottom: "16px" }}>
+              <div className="form-group" style={{ flex: 1, minWidth: "200px", marginBottom: 0 }}>
+                <label className="label">Train Number</label>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Enter Train Number"
+                  value={trainNumber}
+                  onChange={(e) => setTrainNumber(e.target.value)}
+                />
+              </div>
+              <button className="button auto report-button" onClick={handleGetWaitlisted}>
+                Get Waitlisted
+              </button>
             </div>
-            <button className="button report-button" onClick={handleGetWaitlisted}>
-              Get Waitlisted
-            </button>
             {waitlistError && <p className="error-message">{waitlistError}</p>}
-            {waitlist.length > 0 ? (
-              <div className="table-responsive">
+            {waitlist.length > 0 && (
+              <div className="report-table-wrap">
                 <table className="report-table">
                   <thead>
                     <tr>
@@ -348,8 +300,8 @@ const Reports = ({ role, passengerID: propPassengerID }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {waitlist.map((p, index) => (
-                      <tr key={index}>
+                    {waitlist.map((p, i) => (
+                      <tr key={i}>
                         <td data-label="Name">{p.Name}</td>
                         <td data-label="Loyalty Status">{p.LoyaltyStat}</td>
                         <td data-label="Class">{p.CoachType}</td>
@@ -358,18 +310,18 @@ const Reports = ({ role, passengerID: propPassengerID }) => {
                   </tbody>
                 </table>
               </div>
-            ) : (
-              <p>No waitlisted loyalty passengers found.</p>
+            )}
+            {!waitlistError && waitlist.length === 0 && trainNumber && (
+              <p className="text-muted">No waitlisted loyalty passengers found.</p>
             )}
           </div>
 
           <hr />
 
-          {/* Report #5: Average Load Factor */}
-          <div className="report-section">
-            <h2>Average Load Factor by Date</h2>
-            <div className="form-group">
-              <label className="label">Select a Date</label>
+          {/* Average Load Factor & Dependents share the same date picker */}
+          <div style={{ display: "flex", gap: "12px", alignItems: "flex-end", flexWrap: "wrap", marginBottom: "24px" }}>
+            <div className="form-group" style={{ flex: 1, minWidth: "200px", marginBottom: 0 }}>
+              <label className="label">Select Date</label>
               <input
                 className="input"
                 type="date"
@@ -377,12 +329,20 @@ const Reports = ({ role, passengerID: propPassengerID }) => {
                 onChange={(e) => setReportDate(e.target.value)}
               />
             </div>
-            <button className="button report-button" onClick={handleGetLoadFactor}>
-              Get Load Factor
+            <button className="button auto report-button" onClick={handleGetLoadFactor}>
+              Load Factor
             </button>
+            <button className="button auto report-button secondary" onClick={handleGetDependents}>
+              Dependents
+            </button>
+          </div>
+
+          {/* Average Load Factor */}
+          <div className="report-section">
+            <h2 className="section-title">Average Load Factor by Date</h2>
             {loadFactorError && <p className="error-message">{loadFactorError}</p>}
             {loadFactor.length > 0 ? (
-              <div className="table-responsive">
+              <div className="report-table-wrap">
                 <table className="report-table">
                   <thead>
                     <tr>
@@ -403,53 +363,41 @@ const Reports = ({ role, passengerID: propPassengerID }) => {
                 </table>
               </div>
             ) : (
-              <p>No load factor data found.</p>
+              !loadFactorError && <p className="text-muted">Select a date and click "Load Factor".</p>
             )}
           </div>
 
           <hr />
 
-          {/* Report #6: Dependents Traveling */}
+          {/* Dependents Traveling */}
           <div className="report-section">
-            <h2>Dependents Traveling by Date</h2>
-            <div className="form-group">
-              <label className="label">Select a Date</label>
-              <input
-                className="input"
-                type="date"
-                value={reportDate}
-                onChange={(e) => setReportDate(e.target.value)}
-              />
-            </div>
-            <button className="button report-button" onClick={handleGetDependents}>
-              Get Dependents
-            </button>
+            <h2 className="section-title">Dependents Traveling by Date</h2>
             {dependentsError && <p className="error-message">{dependentsError}</p>}
             {dependents.length > 0 ? (
-              <div className="table-responsive">
+              <div className="report-table-wrap">
                 <table className="report-table">
                   <thead>
                     <tr>
                       <th>Dependent Name</th>
                       <th>Passenger Name</th>
                       <th>Date</th>
-                      <th>Train Name</th>
+                      <th>Train</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {dependents.map((d, index) => (
-                      <tr key={index}>
+                    {dependents.map((d, i) => (
+                      <tr key={i}>
                         <td data-label="Dependent Name">{d.DependentName}</td>
                         <td data-label="Passenger Name">{d.PassengerName}</td>
                         <td data-label="Date">{d.Date}</td>
-                        <td data-label="Train Name">{d.English_name}</td>
+                        <td data-label="Train">{d.English_name}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             ) : (
-              <p>No dependents traveling on the selected date.</p>
+              !dependentsError && <p className="text-muted">Select a date and click "Dependents".</p>
             )}
           </div>
         </>

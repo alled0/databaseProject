@@ -1,6 +1,11 @@
-//navbar.js
 import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+
+const TrainIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M12 2C8.14 2 5 3.57 5 6v10c0 1.85 1.29 3.41 3 3.86V21h2l1-1h2l1 1h2v-1.14c1.71-.45 3-2.01 3-3.86V6c0-2.43-3.14-4-7-4zm0 2c3.31 0 5 1.34 5 2H7c0-.66 1.69-2 5-2zM7 12V8h10v4H7zm2.5 5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm5 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/>
+  </svg>
+);
 
 const Navbar = ({ role, onLogout }) => {
   const passengerLinks = [
@@ -28,9 +33,13 @@ const Navbar = ({ role, onLogout }) => {
   return (
     <nav style={styles.nav}>
       <div style={styles.brand}>
-        <span style={styles.brandIcon}>🚆</span>
-        <span style={styles.logo}>Saudi Railways</span>
+        <div style={styles.logoIcon}>
+          <TrainIcon />
+        </div>
+        <span style={styles.logoText}>Saudi Railways</span>
+        <span style={styles.roleBadge}>{role}</span>
       </div>
+
       <ul style={styles.ul}>
         {links.map((link) => {
           const isActive = location.pathname === link.path;
@@ -41,14 +50,14 @@ const Navbar = ({ role, onLogout }) => {
                 style={{ ...styles.link, ...(isActive ? styles.activeLink : {}) }}
               >
                 {link.label}
-                {isActive && <span style={styles.activeIndicator} />}
+                {isActive && <span style={styles.activeBar} />}
               </Link>
             </li>
           );
         })}
-        <li style={styles.li}>
-          <button onClick={handleLogout} style={styles.logoutButton}>
-            Logout
+        <li style={{ ...styles.li, marginLeft: "8px" }}>
+          <button onClick={handleLogout} style={styles.logoutBtn}>
+            Log out
           </button>
         </li>
       </ul>
@@ -58,37 +67,58 @@ const Navbar = ({ role, onLogout }) => {
 
 const styles = {
   nav: {
+    height: "60px",
     padding: "0 28px",
-    backgroundColor: "#2E3B4E",
-    color: "#fff",
+    background: "#0F2137",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    height: "60px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
     position: "sticky",
     top: 0,
     zIndex: 100,
+    boxShadow: "0 1px 0 rgba(255,255,255,0.05), 0 4px 20px rgba(0,0,0,0.25)",
   },
   brand: {
     display: "flex",
     alignItems: "center",
     gap: "10px",
+    flexShrink: 0,
   },
-  brandIcon: {
-    fontSize: "22px",
+  logoIcon: {
+    width: "34px",
+    height: "34px",
+    background: "linear-gradient(135deg, #006B3C, #004D2B)",
+    borderRadius: "9px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "white",
+    boxShadow: "0 2px 8px rgba(0, 107, 60, 0.5)",
+    flexShrink: 0,
   },
-  logo: {
-    fontSize: "20px",
+  logoText: {
+    fontSize: "16px",
     fontWeight: "700",
-    color: "#4CAF50",
-    letterSpacing: "0.5px",
+    color: "white",
+    letterSpacing: "-0.2px",
+    fontFamily: "'Inter', sans-serif",
+  },
+  roleBadge: {
+    fontSize: "10px",
+    fontWeight: "600",
+    padding: "2px 8px",
+    borderRadius: "100px",
+    background: "rgba(0, 107, 60, 0.3)",
+    color: "#6EE7B7",
+    letterSpacing: "0.4px",
+    textTransform: "uppercase",
+    fontFamily: "'Inter', sans-serif",
   },
   ul: {
     listStyle: "none",
     display: "flex",
     alignItems: "center",
-    gap: "4px",
+    gap: "2px",
     margin: 0,
     padding: 0,
   },
@@ -99,41 +129,42 @@ const styles = {
   link: {
     position: "relative",
     textDecoration: "none",
-    color: "#ccc",
-    fontSize: "14px",
+    color: "rgba(255,255,255,0.55)",
+    fontSize: "13px",
     fontWeight: "500",
-    padding: "8px 14px",
-    borderRadius: "6px",
-    transition: "color 0.2s, background 0.2s",
+    padding: "8px 12px",
+    borderRadius: "7px",
+    transition: "color 0.18s, background 0.18s",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    fontFamily: "'Inter', sans-serif",
   },
   activeLink: {
-    color: "#fff",
-    backgroundColor: "rgba(76, 175, 80, 0.15)",
+    color: "white",
+    background: "rgba(255,255,255,0.07)",
   },
-  activeIndicator: {
+  activeBar: {
     position: "absolute",
-    bottom: "-2px",
+    bottom: "4px",
     left: "50%",
     transform: "translateX(-50%)",
-    width: "20px",
-    height: "3px",
-    backgroundColor: "#4CAF50",
-    borderRadius: "2px",
+    width: "16px",
+    height: "2px",
+    background: "#4ADE80",
+    borderRadius: "1px",
   },
-  logoutButton: {
-    backgroundColor: "transparent",
-    color: "#ff6b6b",
-    border: "1.5px solid #ff6b6b",
-    borderRadius: "6px",
+  logoutBtn: {
+    background: "transparent",
+    color: "rgba(255,255,255,0.45)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: "7px",
     padding: "6px 14px",
     cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: "600",
-    marginLeft: "8px",
-    transition: "background 0.2s, color 0.2s",
+    fontSize: "13px",
+    fontWeight: "500",
+    fontFamily: "'Inter', sans-serif",
+    transition: "color 0.18s, border-color 0.18s, background 0.18s",
   },
 };
 

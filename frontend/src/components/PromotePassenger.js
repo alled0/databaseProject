@@ -44,15 +44,17 @@ const PromotePassenger = () => {
 
       {successData && (
         <div className="alert alert-success">
-          <strong>Passenger promoted successfully!</strong>
-          <table className="detail-table">
-            <tbody>
-              <tr><td>Train</td><td>{successData.English_name}</td></tr>
-              <tr><td>Departure</td><td>{successData.Date}</td></tr>
-              <tr><td>From</td><td>{successData.FromStation}</td></tr>
-              <tr><td>To</td><td>{successData.ToStation}</td></tr>
-            </tbody>
-          </table>
+          <div>
+            <strong>Passenger promoted successfully!</strong>
+            <table className="detail-table" style={{ marginTop: "12px" }}>
+              <tbody>
+                <tr><td>Train</td><td>{successData.English_name}</td></tr>
+                <tr><td>Departure</td><td>{successData.Date}</td></tr>
+                <tr><td>From</td><td>{successData.FromStation}</td></tr>
+                <tr><td>To</td><td>{successData.ToStation}</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -68,7 +70,7 @@ const PromotePassenger = () => {
       </div>
 
       <button onClick={handlePromote} className="button" disabled={loading}>
-        {loading ? "Promoting..." : "Promote Passenger"}
+        {loading ? "Promoting…" : "Promote Passenger"}
       </button>
     </div>
   );

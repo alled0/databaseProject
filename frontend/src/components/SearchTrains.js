@@ -52,65 +52,71 @@ const SearchTrains = () => {
 
       {error && <div className="alert alert-error">{error}</div>}
 
-      <div className="form-group">
-        <label className="label">From Station</label>
-        <select
-          value={fromStation}
-          onChange={(e) => setFromStation(e.target.value)}
-          className="input"
-        >
-          <option value="">Select Station</option>
-          {stations.map((s) => (
-            <option key={s.StationID} value={s.StationID}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <div className="form-row">
+        <div className="form-group">
+          <label className="label">From Station</label>
+          <select
+            value={fromStation}
+            onChange={(e) => setFromStation(e.target.value)}
+            className="input"
+          >
+            <option value="">Select station</option>
+            {stations.map((s) => (
+              <option key={s.StationID} value={s.StationID}>{s.name}</option>
+            ))}
+          </select>
+        </div>
 
-      <div className="form-group">
-        <label className="label">To Station</label>
-        <select
-          value={toStation}
-          onChange={(e) => setToStation(e.target.value)}
-          className="input"
-        >
-          <option value="">Select Station</option>
-          {stations.map((s) => (
-            <option key={s.StationID} value={s.StationID}>
-              {s.name}
-            </option>
-          ))}
-        </select>
+        <div className="form-group">
+          <label className="label">To Station</label>
+          <select
+            value={toStation}
+            onChange={(e) => setToStation(e.target.value)}
+            className="input"
+          >
+            <option value="">Select station</option>
+            {stations.map((s) => (
+              <option key={s.StationID} value={s.StationID}>{s.name}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <button onClick={searchTrains} className="button">
-        Search
+        Search Trains
       </button>
 
       {searched && (
-        <div style={{ marginTop: "28px" }}>
-          <h3 style={{ fontSize: "15px", fontWeight: "600", color: "#2E3B4E", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-            Available Trains
+        <div style={{ marginTop: "32px" }}>
+          <h3 className="section-title">
+            {trains.length === 0
+              ? "No trains found"
+              : `${trains.length} Train${trains.length !== 1 ? "s" : ""} Available`}
           </h3>
+
           {trains.length === 0 ? (
-            <div className="alert alert-error">No trains found for the selected route.</div>
+            <p className="text-muted text-center">
+              No trains found for this route. Try a different combination.
+            </p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               {trains.map((train) => (
                 <div key={train.TrainID} style={trainCardStyle}>
-                  <div>
-                    <div style={{ fontWeight: "600", fontSize: "15px", color: "#1a1a2e" }}>
-                      {train.English_name}
-                    </div>
-                    <div style={{ color: "#888", fontSize: "13px", marginTop: "2px" }}>
-                      {train.Arabic_name}
+                  <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                    <div style={trainIconStyle}>🚆</div>
+                    <div>
+                      <div style={{ fontWeight: "600", fontSize: "15px", color: "#0F2137" }}>
+                        {train.English_name}
+                      </div>
+                      <div style={{ color: "#94A3B8", fontSize: "13px", marginTop: "2px" }}>
+                        {train.Arabic_name}
+                      </div>
                     </div>
                   </div>
                   <button
                     onClick={() => handleBook(train.TrainID)}
-                    className="button"
-                    style={{ width: "auto", marginTop: 0, padding: "9px 20px" }}
+                    className="button auto"
+                    style={{ padding: "9px 20px" }}
                   >
                     Book Seat
                   </button>
@@ -128,10 +134,23 @@ const trainCardStyle = {
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  padding: "14px 16px",
-  background: "#f9fafb",
-  border: "1.5px solid #e5e7eb",
+  padding: "16px 18px",
+  background: "#F8FAFC",
+  border: "1px solid #E2E8F0",
   borderRadius: "10px",
+  transition: "border-color 0.18s",
+};
+
+const trainIconStyle = {
+  width: "42px",
+  height: "42px",
+  background: "linear-gradient(135deg, #006B3C, #004D2B)",
+  borderRadius: "10px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: "18px",
+  flexShrink: 0,
 };
 
 export default SearchTrains;

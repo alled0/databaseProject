@@ -23,19 +23,18 @@ const ManageReservations = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    axios
-      .get(`${API_URL}/api/trains/stations`)
-      .then((r) => setStations(r.data))
-      .catch(() => setError("Failed to load stations."));
-
-    axios
-      .get(`${API_URL}/api/trains/`)
-      .then((r) => setTrains(r.data))
-      .catch(() => {});
+    axios.get(`${API_URL}/api/trains/stations`).then((r) => setStations(r.data)).catch(() => {});
+    axios.get(`${API_URL}/api/trains/`).then((r) => setTrains(r.data)).catch(() => {});
   }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setMessage("");
+    setError("");
+  };
+
+  const setAction = (action) => {
+    setForm({ ...form, action });
     setMessage("");
     setError("");
   };
@@ -78,7 +77,7 @@ const ManageReservations = () => {
       setForm({
         passengerEmail: "",
         reservationID: "",
-        action: "Add",
+        action: form.action,
         TrainID: "",
         Date: "",
         FromStation: "",
@@ -107,13 +106,16 @@ const ManageReservations = () => {
       {message && <div className="alert alert-success">{message}</div>}
       {error && <div className="alert alert-error">{error}</div>}
 
-      <div className="form-group">
-        <label className="label">Action</label>
-        <select name="action" value={form.action} onChange={handleChange} className="input">
-          <option value="Add">Add</option>
-          <option value="Edit">Edit</option>
-          <option value="Cancel">Cancel</option>
-        </select>
+      <div className="action-selector">
+        {["Add", "Edit", "Cancel"].map((a) => (
+          <button
+            key={a}
+            className={`action-btn${form.action === a ? " active" : ""}`}
+            onClick={() => setAction(a)}
+          >
+            {a}
+          </button>
+        ))}
       </div>
 
       {form.action === "Add" ? (
@@ -150,55 +152,53 @@ const ManageReservations = () => {
               <select name="TrainID" value={form.TrainID} onChange={handleChange} className="input">
                 <option value="">Select Train</option>
                 {trains.map((t) => (
-                  <option key={t.TrainID} value={t.TrainID}>
-                    {t.English_name}
-                  </option>
+                  <option key={t.TrainID} value={t.TrainID}>{t.English_name}</option>
                 ))}
               </select>
             </div>
           )}
 
-          <div className="form-group">
-            <label className="label">Date</label>
-            <input
-              type="date"
-              name="Date"
-              value={form.Date}
-              onChange={handleChange}
-              className="input"
-            />
+          <div className="form-row">
+            <div className="form-group">
+              <label className="label">From Station</label>
+              <select name="FromStation" value={form.FromStation} onChange={handleChange} className="input">
+                <option value="">Select Station</option>
+                {stations.map((s) => (
+                  <option key={s.StationID} value={s.StationID}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="label">To Station</label>
+              <select name="ToStation" value={form.ToStation} onChange={handleChange} className="input">
+                <option value="">Select Station</option>
+                {stations.map((s) => (
+                  <option key={s.StationID} value={s.StationID}>{s.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="form-group">
-            <label className="label">From Station</label>
-            <select name="FromStation" value={form.FromStation} onChange={handleChange} className="input">
-              <option value="">Select Station</option>
-              {stations.map((s) => (
-                <option key={s.StationID} value={s.StationID}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="label">Date</label>
+              <input
+                type="date"
+                name="Date"
+                value={form.Date}
+                onChange={handleChange}
+                className="input"
+              />
+            </div>
 
-          <div className="form-group">
-            <label className="label">To Station</label>
-            <select name="ToStation" value={form.ToStation} onChange={handleChange} className="input">
-              <option value="">Select Station</option>
-              {stations.map((s) => (
-                <option key={s.StationID} value={s.StationID}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label className="label">Coach Type</label>
-            <select name="CoachType" value={form.CoachType} onChange={handleChange} className="input">
-              <option value="Economy">Economy</option>
-              <option value="Business">Business</option>
-            </select>
+            <div className="form-group">
+              <label className="label">Coach Type</label>
+              <select name="CoachType" value={form.CoachType} onChange={handleChange} className="input">
+                <option value="Economy">Economy</option>
+                <option value="Business">Business</option>
+              </select>
+            </div>
           </div>
 
           <div className="form-group">
@@ -215,8 +215,12 @@ const ManageReservations = () => {
         </>
       )}
 
-      <button onClick={handleAction} className="button" disabled={loading}>
-        {loading ? "Processing..." : actionLabel}
+      <button
+        onClick={handleAction}
+        className={`button${form.action === "Cancel" ? " danger" : ""}`}
+        disabled={loading}
+      >
+        {loading ? "Processing…" : actionLabel}
       </button>
     </div>
   );

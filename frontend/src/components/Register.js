@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "../style/Login.css";
 import API_URL from "../config";
@@ -41,9 +41,7 @@ const Register = ({ onLogin }) => {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || "Registration failed.");
-      }
+      if (!response.ok) throw new Error(data.message || "Registration failed.");
 
       onLogin(data.role, data.passengerID, data.email);
       navigate("/searchtrain");
@@ -54,53 +52,74 @@ const Register = ({ onLogin }) => {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") handleRegister();
+  };
+
   return (
-    <div className="container">
-      <div className="login-logo">🚆</div>
-      <h3 className="heading">Saudi Railways</h3>
-      <p className="login-subtitle">Create your account</p>
-      {error && <div className="alert alert-error">{error}</div>}
-      <div className="form-group">
-        <label className="label">Name:</label>
-        <input
-          type="text"
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-          className="input"
-          placeholder="Your full name"
-        />
+    <div className="auth-bg">
+      <div className="auth-card">
+        <div className="auth-header">
+          <div className="auth-logo">🚆</div>
+          <h1 className="auth-brand">Saudi Railways</h1>
+          <p className="auth-subtitle">Create your account</p>
+        </div>
+
+        <div className="auth-body">
+          {error && <div className="alert alert-error">{error}</div>}
+
+          <div className="form-group">
+            <label className="label">Full Name</label>
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              className="input"
+              placeholder="Your full name"
+              autoComplete="name"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="label">Email</label>
+            <input
+              type="text"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              className="input"
+              placeholder="you@example.com"
+              autoComplete="email"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="label">Password</label>
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              className="input"
+              placeholder="Min. 4 characters"
+              autoComplete="new-password"
+            />
+          </div>
+
+          <button onClick={handleRegister} className="button" disabled={loading}>
+            {loading ? "Creating account…" : "Create Account"}
+          </button>
+
+          <p className="auth-footer">
+            Already have an account?{" "}
+            <Link to="/" className="auth-link">Sign in</Link>
+          </p>
+        </div>
       </div>
-      <div className="form-group">
-        <label className="label">Email:</label>
-        <input
-          type="text"
-          name="email"
-          value={form.email}
-          onChange={handleChange}
-          className="input"
-          placeholder="you@example.com"
-        />
-      </div>
-      <div className="form-group">
-        <label className="label">Password:</label>
-        <input
-          type="password"
-          name="password"
-          value={form.password}
-          onChange={handleChange}
-          className="input"
-        />
-      </div>
-      <button onClick={handleRegister} className="button" disabled={loading}>
-        {loading ? "Creating account..." : "Register"}
-      </button>
-      <p style={{ textAlign: "center", marginTop: "16px", fontSize: "13px", color: "#555" }}>
-        Already have an account?{" "}
-        <Link to="/" style={{ color: "#2E3B4E", fontWeight: "600" }}>
-          Sign in
-        </Link>
-      </p>
     </div>
   );
 };
