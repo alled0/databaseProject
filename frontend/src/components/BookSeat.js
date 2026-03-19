@@ -1,47 +1,39 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import API_URL from "../config";
 
-const BookSeat = () => {
+const BookSeat = ({ email: propEmail }) => {
+  const location = useLocation();
+  const stateData = location.state || {};
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
-    TrainID: "",
+    TrainID: stateData.TrainID || "",
     Date: "",
-    FromStation: "",
-    ToStation: "",
+    FromStation: stateData.FromStation || "",
+    ToStation: stateData.ToStation || "",
     CoachType: "Economy",
     SeatNumber: "",
-    PassengerName: "",
-    IDDocument: "",
-    LuggageDetails: "",
-    email: "", // Email serves as contact info
+    email: propEmail || "",
   });
   const [stations, setStations] = useState([]);
   const [trains, setTrains] = useState([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [reservationID, setReservationID] = useState(null); // Store ReservationID
-  const navigate = useNavigate();
+  const [reservationID, setReservationID] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     axios
-      .get("http://localhost:4000/api/trains/stations")
-      .then((response) => {
-        setStations(response.data);
-      })
-      .catch((error) => {
-        console.error("There was an error fetching stations!", error);
-        setError("Failed to load stations.");
-      });
+      .get(`${API_URL}/api/trains/stations`)
+      .then((r) => setStations(r.data))
+      .catch(() => setError("Failed to load stations."));
 
     axios
-      .get("http://localhost:4000/api/trains/")
-      .then((response) => {
-        setTrains(response.data);
-      })
-      .catch((error) => {
-        console.error("There was an error fetching trains!", error);
-        setError("Failed to load trains.");
-      });
+      .get(`${API_URL}/api/trains/`)
+      .then((r) => setTrains(r.data))
+      .catch(() => setError("Failed to load trains."));
   }, []);
 
   const handleChange = (e) => {
@@ -49,281 +41,156 @@ const BookSeat = () => {
   };
 
   const submitBooking = () => {
-    const requiredFields = [
-      "TrainID",
-      "Date",
-      "FromStation",
-      "ToStation",
-      "CoachType",
-      "SeatNumber",
-      "PassengerName",
-      "IDDocument",
-      "email", // Ensure email is validated
-    ];
-    for (let field of requiredFields) {
-      if (!form[field]) {
-        setError(`The "${field}" field is required. Please fill it out.`);
+    const required = ["TrainID", "Date", "FromStation", "ToStation", "CoachType", "SeatNumber", "email"];
+    for (let f of required) {
+      if (!form[f]) {
+        setError(`"${f}" is required.`);
         return;
       }
     }
-
     if (form.FromStation === form.ToStation) {
-      setError(
-        'The "From Station" and "To Station" cannot be the same. Please select different stations.'
-      );
+      setError("From Station and To Station cannot be the same.");
       return;
     }
-
     setError("");
-    setMessage("");
-
+    setLoading(true);
     axios
-      .post("http://localhost:4000/api/reservations/bookSeat", form)
+      .post(`${API_URL}/api/reservations/bookSeat`, form)
       .then((response) => {
-        if (response.status === 200) {
-          setReservationID(response.data.ReservationID); // Store ReservationID
-          setMessage(
-            `Reservation Successful! Your Reservation ID is ${response.data.ReservationID}. Please proceed to payment.`
-          );
-        } else {
-          setError("Reservation failed. Please try again later.");
-        }
+        setReservationID(response.data.ReservationID);
+        setMessage(`Booking successful! Your Reservation ID is #${response.data.ReservationID}.`);
       })
-      .catch((error) => {
-        console.error("There was an error booking the seat!", error);
-        setError("A server error occurred. Please try again later.");
-      });
+      .catch((err) => {
+        setError(err.response?.data?.error || "A server error occurred. Please try again later.");
+      })
+      .finally(() => setLoading(false));
   };
 
-  const goToPayment = () => {
-    console.log(
-      "Navigating to payment page with Reservation ID:",
-      reservationID
-    );
-
-    if (reservationID) {
-      navigate(`/payment/${reservationID}`); // Navigate to the payment page
-    }
+  const resetForm = () => {
+    setMessage("");
+    setReservationID(null);
+    setError("");
+    setForm({
+      TrainID: "",
+      Date: "",
+      FromStation: "",
+      ToStation: "",
+      CoachType: "Economy",
+      SeatNumber: "",
+      email: propEmail || "",
+    });
   };
 
   return (
-    <div style={styles.container}>
-      <h3 style={styles.heading}>Book a Seat</h3>
-      {error && <p style={styles.error}>{error}</p>}
-      {message && (
+    <div className="container">
+      <h2 className="page-title">Book a Seat</h2>
+
+      {error && <div className="alert alert-error">{error}</div>}
+
+      {message ? (
         <div>
-          <p style={styles.success}>{message}</p>
-          {reservationID && (
-            <button onClick={goToPayment} style={styles.paymentButton}>
-              Proceed to Payment
-            </button>
-          )}
+          <div className="alert alert-success">{message}</div>
+          <button
+            onClick={() => navigate(`/payment/${reservationID}`)}
+            className="button"
+          >
+            Proceed to Payment
+          </button>
+          <button
+            onClick={resetForm}
+            className="button secondary"
+            style={{ marginTop: "8px" }}
+          >
+            Book Another Seat
+          </button>
         </div>
+      ) : (
+        <>
+          <div className="form-group">
+            <label className="label">Train</label>
+            <select name="TrainID" value={form.TrainID} onChange={handleChange} className="input">
+              <option value="">Select Train</option>
+              {trains.map((t) => (
+                <option key={t.TrainID} value={t.TrainID}>
+                  {t.English_name} / {t.Arabic_name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="label">Date</label>
+            <input
+              type="date"
+              name="Date"
+              value={form.Date}
+              onChange={handleChange}
+              className="input"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="label">From Station</label>
+            <select name="FromStation" value={form.FromStation} onChange={handleChange} className="input">
+              <option value="">Select Station</option>
+              {stations.map((s) => (
+                <option key={s.StationID} value={s.StationID}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="label">To Station</label>
+            <select name="ToStation" value={form.ToStation} onChange={handleChange} className="input">
+              <option value="">Select Station</option>
+              {stations.map((s) => (
+                <option key={s.StationID} value={s.StationID}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="label">Coach Type</label>
+            <select name="CoachType" value={form.CoachType} onChange={handleChange} className="input">
+              <option value="Economy">Economy</option>
+              <option value="Business">Business</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="label">Seat Number</label>
+            <input
+              type="text"
+              name="SeatNumber"
+              value={form.SeatNumber}
+              onChange={handleChange}
+              placeholder="e.g., 12A"
+              className="input"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="label">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              readOnly
+              className="input"
+            />
+          </div>
+
+          <button onClick={submitBooking} className="button" disabled={loading}>
+            {loading ? "Booking..." : "Book Seat"}
+          </button>
+        </>
       )}
-      <div style={styles.form}>
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Train:</label>
-          <select
-            name="TrainID"
-            value={form.TrainID}
-            onChange={handleChange}
-            style={styles.select}
-          >
-            <option value="">Select Train</option>
-            {trains.map((train) => (
-              <option key={train.TrainID} value={train.TrainID}>
-                {train.English_name} / {train.Arabic_name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Date:</label>
-          <input
-            type="date"
-            name="Date"
-            value={form.Date}
-            onChange={handleChange}
-            style={styles.input}
-          />
-        </div>
-        <div style={styles.formGroup}>
-          <label style={styles.label}>From Station:</label>
-          <select
-            name="FromStation"
-            value={form.FromStation}
-            onChange={handleChange}
-            style={styles.select}
-          >
-            <option value="">Select Station</option>
-            {stations.map((station) => (
-              <option key={station.StationID} value={station.StationID}>
-                {station.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div style={styles.formGroup}>
-          <label style={styles.label}>To Station:</label>
-          <select
-            name="ToStation"
-            value={form.ToStation}
-            onChange={handleChange}
-            style={styles.select}
-          >
-            <option value="">Select Station</option>
-            {stations.map((station) => (
-              <option key={station.StationID} value={station.StationID}>
-                {station.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Coach Type:</label>
-          <select
-            name="CoachType"
-            value={form.CoachType}
-            onChange={handleChange}
-            style={styles.select}
-          >
-            <option value="Economy">Economy</option>
-            <option value="Business">Business</option>
-          </select>
-        </div>
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Seat Number:</label>
-          <input
-            type="text"
-            name="SeatNumber"
-            value={form.SeatNumber}
-            onChange={handleChange}
-            placeholder="e.g., 12A"
-            style={styles.input}
-          />
-        </div>
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Passenger Name:</label>
-          <input
-            type="text"
-            name="PassengerName"
-            value={form.PassengerName}
-            onChange={handleChange}
-            style={styles.input}
-          />
-        </div>
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Email:</label>
-          <input
-            type="email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            placeholder="Enter your email"
-            style={styles.input}
-          />
-        </div>
-        <div style={styles.formGroup}>
-          <label style={styles.label}>ID Document:</label>
-          <input
-            type="text"
-            name="IDDocument"
-            value={form.IDDocument}
-            onChange={handleChange}
-            placeholder="ID Number"
-            style={styles.input}
-          />
-        </div>
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Luggage Details:</label>
-          <input
-            type="text"
-            name="LuggageDetails"
-            value={form.LuggageDetails}
-            onChange={handleChange}
-            placeholder="e.g., 2 bags"
-            style={styles.input}
-          />
-        </div>
-        <button onClick={submitBooking} style={styles.button}>
-          Book
-        </button>
-      </div>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    maxWidth: "600px",
-    margin: "0 auto",
-    padding: "20px",
-    backgroundColor: "#f9f9f9",
-    borderRadius: "8px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-  },
-  heading: {
-    textAlign: "center",
-    fontSize: "24px",
-    marginBottom: "20px",
-    color: "#333",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-  },
-  formGroup: {
-    marginBottom: "15px",
-  },
-  label: {
-    fontWeight: "bold",
-    marginBottom: "5px",
-    color: "#333",
-  },
-  select: {
-    padding: "10px",
-    borderRadius: "5px",
-    border: "1px solid #ddd",
-    fontSize: "16px",
-    width: "100%",
-  },
-  input: {
-    padding: "10px",
-    borderRadius: "5px",
-    border: "1px solid #ddd",
-    fontSize: "16px",
-    width: "100%",
-  },
-  button: {
-    padding: "12px 20px",
-    backgroundColor: "#4CAF50",
-    color: "white",
-    border: "none",
-    borderRadius: "5px",
-    fontSize: "16px",
-    cursor: "pointer",
-    transition: "background-color 0.3s",
-  },
-  paymentButton: {
-    padding: "10px 15px",
-    backgroundColor: "#FF9800",
-    color: "white",
-    border: "none",
-    borderRadius: "5px",
-    fontSize: "16px",
-    cursor: "pointer",
-    marginTop: "10px",
-  },
-  error: {
-    color: "red",
-    fontSize: "14px",
-    marginBottom: "15px",
-  },
-  success: {
-    color: "green",
-    fontSize: "14px",
-    marginBottom: "15px",
-  },
 };
 
 export default BookSeat;

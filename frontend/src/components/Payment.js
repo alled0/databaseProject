@@ -2,18 +2,16 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../style/Payment.css";
+import API_URL from "../config";
 
 const Payment = () => {
-  const { reservationID } = useParams(); // Get ReservationID from URL
+  const { reservationID } = useParams();
   const [paymentStatus, setPaymentStatus] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // Loading state
-  const navigate = useNavigate(); // For navigation
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("Received Reservation ID from URL:", reservationID);
-
-    // Validate reservationID
     if (!reservationID) {
       setError("Invalid reservation ID. Please go back and try again.");
     }
@@ -24,44 +22,39 @@ const Payment = () => {
       setError("Missing reservation ID. Cannot proceed with payment.");
       return;
     }
-
-    setLoading(true); // Start loading
-    setError(""); // Clear errors
-
+    setLoading(true);
+    setError("");
     axios
-      .post("http://localhost:4000/api/reservations/completePayment", { reservationID })
+      .post(`${API_URL}/api/reservations/completePayment`, { reservationID })
       .then((response) => {
         if (response.status === 200) {
-          setPaymentStatus("Payment successful! Your reservation is now paid.");
+          setPaymentStatus("Payment successful! Your reservation is confirmed.");
         } else {
-          setError("Payment failed. Please try again later.");
+          setError("Payment failed. Please try again.");
         }
       })
-      .catch((error) => {
-        console.error("Payment error:", error);
+      .catch(() => {
         setError("A server error occurred. Please try again later.");
       })
-      .finally(() => {
-        setLoading(false); // End loading
-      });
-  };
-
-  const goBack = () => {
-    navigate(-1); // Navigate to the previous page
+      .finally(() => setLoading(false));
   };
 
   return (
     <div className="container">
-      <h3 className="heading">Complete Payment</h3>
-      {error && <p className="error">{error}</p>}
+      <div className="payment-icon">{paymentStatus ? "✅" : "💳"}</div>
+      <h3 className="heading">{paymentStatus ? "Payment Complete" : "Complete Payment"}</h3>
+      <p className="reservation-id">Reservation ID: <strong>#{reservationID}</strong></p>
+
+      {error && <div className="alert alert-error">{error}</div>}
+
       {paymentStatus ? (
-        <p className="success">{paymentStatus}</p>
+        <div className="alert alert-success">{paymentStatus}</div>
       ) : (
-        <div>
+        <div className="payment-actions">
           <button onClick={handlePayment} className="button" disabled={loading}>
             {loading ? "Processing..." : "Pay Now"}
           </button>
-          <button onClick={goBack} className="button backButton">
+          <button onClick={() => navigate(-1)} className="button backButton">
             Go Back
           </button>
         </div>

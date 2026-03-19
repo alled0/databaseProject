@@ -6,6 +6,7 @@ DROP TABLE IF EXISTS Payment;
 DROP TABLE IF EXISTS Dependent;
 DROP TABLE IF EXISTS Reservation;
 DROP TABLE IF EXISTS Passenger;
+DROP TABLE IF EXISTS StaffAssignment;
 DROP TABLE IF EXISTS Schedule;
 DROP TABLE IF EXISTS Track;
 DROP TABLE IF EXISTS Station;
@@ -129,6 +130,17 @@ CREATE TABLE Staff (
   Role VARCHAR(50),
   email VARCHAR(255) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL
+);
+
+-- StaffAssignment Table
+CREATE TABLE StaffAssignment (
+  AssignmentID INT AUTO_INCREMENT PRIMARY KEY,
+  StaffID INT NOT NULL,
+  TrainID INT NOT NULL,
+  Role VARCHAR(50) NOT NULL,
+  FOREIGN KEY (StaffID) REFERENCES Staff(StaffID),
+  FOREIGN KEY (TrainID) REFERENCES Train(TrainID),
+  UNIQUE KEY unique_staff_train (StaffID, TrainID)
 );
 
 -- WaitingList Table

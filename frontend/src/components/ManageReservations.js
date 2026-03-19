@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
-import "../style/Admin.css"; // Import shared CSS file
+import { useState, useEffect } from "react";
+import "../style/Admin.css";
 import axios from "axios";
+import API_URL from "../config";
 
 const ManageReservations = () => {
   const [form, setForm] = useState({
     passengerEmail: "",
     reservationID: "",
     action: "Add",
+    TrainID: "",
     Date: "",
     FromStation: "",
     ToStation: "",
@@ -15,45 +17,50 @@ const ManageReservations = () => {
   });
 
   const [stations, setStations] = useState([]);
+  const [trains, setTrains] = useState([]);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     axios
-      .get("http://localhost:4000/api/trains/stations")
-      .then((response) => {
-        setStations(response.data);
-      })
-      .catch((error) => {
-        console.error("There was an error fetching stations!", error);
-        alert("Failed to load stations.");
-      });
+      .get(`${API_URL}/api/trains/stations`)
+      .then((r) => setStations(r.data))
+      .catch(() => setError("Failed to load stations."));
+
+    axios
+      .get(`${API_URL}/api/trains/`)
+      .then((r) => setTrains(r.data))
+      .catch(() => {});
   }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setMessage("");
+    setError("");
   };
 
   const handleAction = async () => {
-    if (!form.action) {
-      alert("Action is required.");
-      return;
-    }
+    setMessage("");
+    setError("");
 
     if (form.action === "Add" && !form.passengerEmail) {
-      alert("Passenger Email is required for Add action.");
+      setError("Passenger Email is required for Add action.");
       return;
     }
-
     if (form.action !== "Add" && !form.reservationID) {
-      alert("Reservation ID is required for Edit or Cancel.");
+      setError("Reservation ID is required for Edit or Cancel.");
       return;
     }
 
+    setLoading(true);
     try {
       const payload = {
         action: form.action,
-        passengerEmail: form.passengerEmail || null, // Required for Add
-        reservationID: form.reservationID || null, // Required for Edit/Cancel
+        passengerEmail: form.passengerEmail || null,
+        reservationID: form.reservationID || null,
         details: {
+          TrainID: form.TrainID || null,
           Date: form.Date || null,
           FromStation: form.FromStation || null,
           ToStation: form.ToStation || null,
@@ -63,46 +70,67 @@ const ManageReservations = () => {
       };
 
       const response = await axios.post(
-        "http://localhost:4000/api/reservations/manageReservations",
+        `${API_URL}/api/reservations/manageReservations`,
         payload
       );
 
-      alert(response.data.message);
+      setMessage(response.data.message);
       setForm({
         passengerEmail: "",
         reservationID: "",
         action: "Add",
+        TrainID: "",
         Date: "",
         FromStation: "",
         ToStation: "",
         CoachType: "Economy",
         SeatNumber: "",
       });
-    } catch (error) {
-      console.error("Error managing reservation:", error);
-      alert(error.response?.data?.error || "A server error occurred.");
+    } catch (err) {
+      setError(err.response?.data?.error || "A server error occurred.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const actionLabel =
+    form.action === "Add"
+      ? "Add Reservation"
+      : form.action === "Edit"
+      ? "Update Reservation"
+      : "Cancel Reservation";
+
   return (
     <div className="container">
-      <h2>Manage Reservations</h2>
+      <h2 className="page-title">Manage Reservations</h2>
+
+      {message && <div className="alert alert-success">{message}</div>}
+      {error && <div className="alert alert-error">{error}</div>}
+
+      <div className="form-group">
+        <label className="label">Action</label>
+        <select name="action" value={form.action} onChange={handleChange} className="input">
+          <option value="Add">Add</option>
+          <option value="Edit">Edit</option>
+          <option value="Cancel">Cancel</option>
+        </select>
+      </div>
 
       {form.action === "Add" ? (
         <div className="form-group">
-          <label>Passenger Email:</label>
+          <label className="label">Passenger Email</label>
           <input
             type="email"
             name="passengerEmail"
             value={form.passengerEmail}
             onChange={handleChange}
             className="input"
-            placeholder="Enter Passenger Email"
+            placeholder="Enter passenger email"
           />
         </div>
       ) : (
         <div className="form-group">
-          <label>Reservation ID:</label>
+          <label className="label">Reservation ID</label>
           <input
             type="text"
             name="reservationID"
@@ -114,24 +142,24 @@ const ManageReservations = () => {
         </div>
       )}
 
-      <div className="form-group">
-        <label>Action:</label>
-        <select
-          name="action"
-          value={form.action}
-          onChange={handleChange}
-          className="input"
-        >
-          <option value="Add">Add</option>
-          <option value="Edit">Edit</option>
-          <option value="Cancel">Cancel</option>
-        </select>
-      </div>
-
-      {form.action === "Add" || form.action === "Edit" ? (
+      {(form.action === "Add" || form.action === "Edit") && (
         <>
+          {form.action === "Add" && (
+            <div className="form-group">
+              <label className="label">Train</label>
+              <select name="TrainID" value={form.TrainID} onChange={handleChange} className="input">
+                <option value="">Select Train</option>
+                {trains.map((t) => (
+                  <option key={t.TrainID} value={t.TrainID}>
+                    {t.English_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="form-group">
-            <label>Date:</label>
+            <label className="label">Date</label>
             <input
               type="date"
               name="Date"
@@ -142,67 +170,53 @@ const ManageReservations = () => {
           </div>
 
           <div className="form-group">
-            <label>From Station:</label>
-            <select
-              name="FromStation"
-              value={form.FromStation}
-              onChange={handleChange}
-              className="input"
-            >
+            <label className="label">From Station</label>
+            <select name="FromStation" value={form.FromStation} onChange={handleChange} className="input">
               <option value="">Select Station</option>
-              {stations.map((station) => (
-                <option key={station.StationID} value={station.StationID}>
-                  {station.name}
+              {stations.map((s) => (
+                <option key={s.StationID} value={s.StationID}>
+                  {s.name}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="form-group">
-            <label>To Station:</label>
-            <select
-              name="ToStation"
-              value={form.ToStation}
-              onChange={handleChange}
-              className="input"
-            >
+            <label className="label">To Station</label>
+            <select name="ToStation" value={form.ToStation} onChange={handleChange} className="input">
               <option value="">Select Station</option>
-              {stations.map((station) => (
-                <option key={station.StationID} value={station.StationID}>
-                  {station.name}
+              {stations.map((s) => (
+                <option key={s.StationID} value={s.StationID}>
+                  {s.name}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="form-group">
-            <label>Coach Type:</label>
-            <select
-              name="CoachType"
-              value={form.CoachType}
-              onChange={handleChange}
-              className="input"
-            >
+            <label className="label">Coach Type</label>
+            <select name="CoachType" value={form.CoachType} onChange={handleChange} className="input">
               <option value="Economy">Economy</option>
               <option value="Business">Business</option>
             </select>
           </div>
 
           <div className="form-group">
-            <label>Seat Number:</label>
+            <label className="label">Seat Number</label>
             <input
               type="text"
               name="SeatNumber"
               value={form.SeatNumber}
               onChange={handleChange}
               className="input"
+              placeholder="e.g., 12A"
             />
           </div>
         </>
-      ) : null}
+      )}
 
-      <button onClick={handleAction} className="button">
-        Perform Action
+      <button onClick={handleAction} className="button" disabled={loading}>
+        {loading ? "Processing..." : actionLabel}
       </button>
     </div>
   );

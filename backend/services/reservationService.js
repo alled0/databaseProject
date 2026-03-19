@@ -136,8 +136,8 @@ exports.manageReservations = async (req, res) => {
   const connection = await db.getConnection();
   try {
     if (action === "Add") {
-      const { Date, FromStation, ToStation, CoachType, SeatNumber } = details;
-      if (!Date || !FromStation || !ToStation || !CoachType || !SeatNumber || !passengerEmail) {
+      const { TrainID, Date, FromStation, ToStation, CoachType, SeatNumber } = details;
+      if (!TrainID || !Date || !FromStation || !ToStation || !CoachType || !SeatNumber || !passengerEmail) {
         return res.status(400).json({ error: "Missing required fields." });
       }
 
@@ -148,10 +148,10 @@ exports.manageReservations = async (req, res) => {
       const PassengerID = passenger[0].PassengerID;
 
       const sql = `
-        INSERT INTO Reservation (Date, FromStation, ToStation, CoachType, SeatNumber, PassengerID)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO Reservation (TrainID, Date, FromStation, ToStation, CoachType, SeatNumber, PassengerID)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
       `;
-      const [result] = await connection.query(sql, [Date, FromStation, ToStation, CoachType, SeatNumber, PassengerID]);
+      const [result] = await connection.query(sql, [TrainID, Date, FromStation, ToStation, CoachType, SeatNumber, PassengerID]);
       return res.json({ message: "Reservation added successfully.", reservationID: result.insertId });
     } else if (action === "Edit") {
       const { Date, FromStation, ToStation, CoachType, SeatNumber } = details;
@@ -179,12 +179,15 @@ exports.manageReservations = async (req, res) => {
         return res.status(400).json({ error: "Reservation ID is required for cancellation." });
       }
 
-      // Delete Payment first
+      await connection.beginTransaction();
+      await connection.query("DELETE FROM WaitingList WHERE ReservationID = ?", [reservationID]);
       await connection.query("DELETE FROM Payment WHERE ResID = ?", [reservationID]);
       const [deleteResult] = await connection.query("DELETE FROM Reservation WHERE ReservationID = ?", [reservationID]);
       if (deleteResult.affectedRows === 0) {
+        await connection.rollback();
         return res.status(404).json({ error: "Reservation not found." });
       }
+      await connection.commit();
       return res.json({ message: "Reservation cancelled successfully." });
     } else {
       return res.status(400).json({ error: "Invalid action. Allowed actions are Add, Edit, Cancel." });

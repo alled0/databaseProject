@@ -86,7 +86,7 @@ exports.sendUnpaidReminders = async () => {
       });
 
       const mailOptions = {
-        from: "railwaysaudi@yahoo.com",
+        from: "onboarding@resend.dev",
         to: email,
         subject: "Payment Reminder for Your Train Reservations",
         html: `
@@ -193,7 +193,7 @@ exports.sendDepartureReminders = async () => {
       });
 
       const mailOptions = {
-        from: "railwaysaudi@yahoo.com",
+        from: "onboarding@resend.dev",
         to: email,
         subject: "Train Departure Reminder",
         html: `

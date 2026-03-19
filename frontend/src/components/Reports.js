@@ -1,16 +1,17 @@
 // frontend/src/components/Reports.js
 import React, { useState, useEffect } from "react";
-import "../style/Report.css"; // Ensure the path is correct based on your project structure
+import "../style/Report.css";
+import API_URL from "../config";
 
-const Reports = ({ role }) => { // Removed passengerID prop
+const Reports = ({ role, passengerID: propPassengerID }) => {
   // State variables for Passenger Reports
   const [activeTrains, setActiveTrains] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
 
-  // New State variables for Passenger ID input
-  const [inputPassengerID, setInputPassengerID] = useState("");
-  const [submittedPassengerID, setSubmittedPassengerID] = useState("");
+  // Passenger ID input — pre-filled from login session
+  const [inputPassengerID, setInputPassengerID] = useState(propPassengerID || "");
+  const [submittedPassengerID, setSubmittedPassengerID] = useState(propPassengerID || "");
   const [isLoadingReservations, setIsLoadingReservations] = useState(false);
   const [errorReservations, setErrorReservations] = useState("");
 
@@ -21,12 +22,15 @@ const Reports = ({ role }) => { // Removed passengerID prop
   const [dependents, setDependents] = useState([]);
   const [reportDate, setReportDate] = useState("");
   const [trainNumber, setTrainNumber] = useState("");
+  const [waitlistError, setWaitlistError] = useState("");
+  const [loadFactorError, setLoadFactorError] = useState("");
+  const [dependentsError, setDependentsError] = useState("");
 
   // Fetch Active Trains based on selected date (Passenger and Admin)
   useEffect(() => {
     const fetchActiveTrains = async () => {
       try {
-        let url = "http://localhost:4000/api/reports/active-trains";
+        let url = `${API_URL}/api/reports/active-trains`;
         if (selectedDate) {
           url += `?date=${encodeURIComponent(selectedDate)}`;
         }
@@ -53,7 +57,7 @@ const Reports = ({ role }) => { // Removed passengerID prop
       setIsLoadingReservations(true);
       setErrorReservations("");
       try {
-        let url = `http://localhost:4000/api/reports/reservations/${encodeURIComponent(submittedPassengerID)}`;
+        let url = `${API_URL}/api/reports/reservations/${encodeURIComponent(submittedPassengerID)}`;
         if (selectedDate) {
           url += `?date=${encodeURIComponent(selectedDate)}`;
         }
@@ -81,7 +85,7 @@ const Reports = ({ role }) => { // Removed passengerID prop
     if (role === "Admin") {
       const fetchTrainStations = async () => {
         try {
-          const response = await fetch("http://localhost:4000/api/reports/stations-for-trains");
+          const response = await fetch(`${API_URL}/api/reports/stations-for-trains`);
           if (!response.ok) {
             throw new Error("Failed to fetch train stations.");
           }
@@ -99,12 +103,13 @@ const Reports = ({ role }) => { // Removed passengerID prop
 
   // Handler Functions for Admin Reports
   const handleGetWaitlisted = async () => {
+    setWaitlistError("");
     if (!trainNumber) {
-      alert("Please enter a Train Number.");
+      setWaitlistError("Please enter a Train Number.");
       return;
     }
     try {
-      const url = `http://localhost:4000/api/reports/waitlisted-loyalty/${encodeURIComponent(trainNumber)}`;
+      const url = `${API_URL}/api/reports/waitlisted-loyalty/${encodeURIComponent(trainNumber)}`;
       const response = await fetch(url);
       if (!response.ok) {
         const errorData = await response.json();
@@ -115,17 +120,18 @@ const Reports = ({ role }) => { // Removed passengerID prop
     } catch (error) {
       console.error(error);
       setWaitlist([]);
-      alert(error.message);
+      setWaitlistError(error.message);
     }
   };
 
   const handleGetLoadFactor = async () => {
+    setLoadFactorError("");
     if (!reportDate) {
-      alert("Please select a date.");
+      setLoadFactorError("Please select a date.");
       return;
     }
     try {
-      const url = `http://localhost:4000/api/reports/load-factor/${encodeURIComponent(reportDate)}`;
+      const url = `${API_URL}/api/reports/load-factor/${encodeURIComponent(reportDate)}`;
       const response = await fetch(url);
       if (!response.ok) {
         const errorData = await response.json();
@@ -136,17 +142,18 @@ const Reports = ({ role }) => { // Removed passengerID prop
     } catch (error) {
       console.error(error);
       setLoadFactor([]);
-      alert(error.message);
+      setLoadFactorError(error.message);
     }
   };
 
   const handleGetDependents = async () => {
+    setDependentsError("");
     if (!reportDate) {
-      alert("Please select a date.");
+      setDependentsError("Please select a date.");
       return;
     }
     try {
-      const url = `http://localhost:4000/api/reports/dependents/${encodeURIComponent(reportDate)}`;
+      const url = `${API_URL}/api/reports/dependents/${encodeURIComponent(reportDate)}`;
       const response = await fetch(url);
       if (!response.ok) {
         const errorData = await response.json();
@@ -157,7 +164,7 @@ const Reports = ({ role }) => { // Removed passengerID prop
     } catch (error) {
       console.error(error);
       setDependents([]);
-      alert(error.message);
+      setDependentsError(error.message);
     }
   };
 
@@ -165,7 +172,7 @@ const Reports = ({ role }) => { // Removed passengerID prop
   const handlePassengerIDSubmit = (e) => {
     e.preventDefault();
     if (!inputPassengerID.trim()) {
-      alert("Please enter your Passenger ID.");
+      setErrorReservations("Please enter your Passenger ID.");
       return;
     }
     setSubmittedPassengerID(inputPassengerID.trim());
@@ -329,6 +336,7 @@ const Reports = ({ role }) => { // Removed passengerID prop
             <button className="button report-button" onClick={handleGetWaitlisted}>
               Get Waitlisted
             </button>
+            {waitlistError && <p className="error-message">{waitlistError}</p>}
             {waitlist.length > 0 ? (
               <div className="table-responsive">
                 <table className="report-table">
@@ -372,6 +380,7 @@ const Reports = ({ role }) => { // Removed passengerID prop
             <button className="button report-button" onClick={handleGetLoadFactor}>
               Get Load Factor
             </button>
+            {loadFactorError && <p className="error-message">{loadFactorError}</p>}
             {loadFactor.length > 0 ? (
               <div className="table-responsive">
                 <table className="report-table">
@@ -415,6 +424,7 @@ const Reports = ({ role }) => { // Removed passengerID prop
             <button className="button report-button" onClick={handleGetDependents}>
               Get Dependents
             </button>
+            {dependentsError && <p className="error-message">{dependentsError}</p>}
             {dependents.length > 0 ? (
               <div className="table-responsive">
                 <table className="report-table">

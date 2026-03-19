@@ -1,25 +1,22 @@
-// frontend/src/components/SearchTrains.js
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import API_URL from "../config";
 
 const SearchTrains = () => {
-  const [trains, setTrains] = useState([]);
   const [stations, setStations] = useState([]);
   const [fromStation, setFromStation] = useState("");
   const [toStation, setToStation] = useState("");
+  const [trains, setTrains] = useState([]);
+  const [searched, setSearched] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch stations
     axios
-      .get("http://localhost:4000/api/trains/stations")
-      .then((response) => {
-        setStations(response.data);
-      })
-      .catch((error) => {
-        console.error("There was an error fetching stations!", error);
-        setError("Failed to load stations.");
-      });
+      .get(`${API_URL}/api/trains/stations`)
+      .then((r) => setStations(r.data))
+      .catch(() => setError("Failed to load stations."));
   }, []);
 
   const searchTrains = () => {
@@ -33,147 +30,108 @@ const SearchTrains = () => {
     }
     setError("");
     axios
-      .get("http://localhost:4000/api/trains/searchTrains", {
-        params: {
-          fromStation: fromStation,
-          toStation: toStation,
-        },
+      .get(`${API_URL}/api/trains/searchTrains`, {
+        params: { fromStation, toStation },
       })
-      .then((response) => {
-        setTrains(response.data);
+      .then((r) => {
+        setTrains(r.data);
+        setSearched(true);
       })
-      .catch((error) => {
-        console.error("There was an error searching for trains!", error);
-        setError("Failed to search for trains.");
-      });
+      .catch(() => setError("Failed to search for trains."));
+  };
+
+  const handleBook = (trainID) => {
+    navigate("/book", {
+      state: { TrainID: trainID, FromStation: fromStation, ToStation: toStation },
+    });
   };
 
   return (
-    <div style={styles.container}>
-      <h3 style={styles.heading}>Search Trains</h3>
-      {error && <p style={styles.error}>{error}</p>}
-      <div style={styles.formGroup}>
-        <label style={styles.label}>From Station:</label>
+    <div className="container">
+      <h2 className="page-title">Search Trains</h2>
+
+      {error && <div className="alert alert-error">{error}</div>}
+
+      <div className="form-group">
+        <label className="label">From Station</label>
         <select
           value={fromStation}
           onChange={(e) => setFromStation(e.target.value)}
-          style={styles.select}
+          className="input"
         >
           <option value="">Select Station</option>
-          {stations.map((station) => (
-            <option key={station.StationID} value={station.StationID}>
-              {station.name}
+          {stations.map((s) => (
+            <option key={s.StationID} value={s.StationID}>
+              {s.name}
             </option>
           ))}
         </select>
       </div>
-      <div style={styles.formGroup}>
-        <label style={styles.label}>To Station:</label>
+
+      <div className="form-group">
+        <label className="label">To Station</label>
         <select
           value={toStation}
           onChange={(e) => setToStation(e.target.value)}
-          style={styles.select}
+          className="input"
         >
           <option value="">Select Station</option>
-          {stations.map((station) => (
-            <option key={station.StationID} value={station.StationID}>
-              {station.name}
+          {stations.map((s) => (
+            <option key={s.StationID} value={s.StationID}>
+              {s.name}
             </option>
           ))}
         </select>
       </div>
-      <button onClick={searchTrains} style={styles.button}>
+
+      <button onClick={searchTrains} className="button">
         Search
       </button>
 
-      <h4 style={styles.availableTrainsHeading}>Available Trains:</h4>
-      {trains.length > 0 ? (
-        <ul style={styles.trainList}>
-          {trains.map((train) => (
-            <li key={train.TrainID} style={styles.trainItem}>
-              {train.English_name} / {train.Arabic_name}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p style={styles.noTrainsMessage}>
-          No trains found for the selected route.
-        </p>
+      {searched && (
+        <div style={{ marginTop: "28px" }}>
+          <h3 style={{ fontSize: "15px", fontWeight: "600", color: "#2E3B4E", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+            Available Trains
+          </h3>
+          {trains.length === 0 ? (
+            <div className="alert alert-error">No trains found for the selected route.</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {trains.map((train) => (
+                <div key={train.TrainID} style={trainCardStyle}>
+                  <div>
+                    <div style={{ fontWeight: "600", fontSize: "15px", color: "#1a1a2e" }}>
+                      {train.English_name}
+                    </div>
+                    <div style={{ color: "#888", fontSize: "13px", marginTop: "2px" }}>
+                      {train.Arabic_name}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleBook(train.TrainID)}
+                    className="button"
+                    style={{ width: "auto", marginTop: 0, padding: "9px 20px" }}
+                  >
+                    Book Seat
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
 };
 
-const styles = {
-  container: {
-    padding: "20px",
-    maxWidth: "600px",
-    margin: "0 auto",
-    backgroundColor: "#f9f9f9",
-    borderRadius: "8px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-  },
-  heading: {
-    textAlign: "center",
-    fontSize: "24px",
-    marginBottom: "20px",
-    color: "#333",
-  },
-  formGroup: {
-    marginBottom: "15px",
-  },
-  label: {
-    fontWeight: "bold",
-    marginBottom: "5px",
-    color: "#333",
-  },
-  select: {
-    width: "100%",
-    padding: "10px",
-    borderRadius: "5px",
-    border: "1px solid #ddd",
-    fontSize: "16px",
-  },
-  button: {
-    padding: "12px 20px",
-    backgroundColor: "#4CAF50",
-    color: "white",
-    border: "none",
-    borderRadius: "5px",
-    fontSize: "16px",
-    cursor: "pointer",
-    transition: "background-color 0.3s",
-    width: "100%",
-  },
-  buttonHover: {
-    backgroundColor: "#45a049",
-  },
-  error: {
-    color: "red",
-    fontSize: "14px",
-    marginBottom: "15px",
-  },
-  availableTrainsHeading: {
-    fontSize: "18px",
-    marginTop: "20px",
-    color: "#333",
-  },
-  trainList: {
-    listStyleType: "none",
-    padding: 0,
-  },
-  trainItem: {
-    backgroundColor: "#f1f1f1",
-    marginBottom: "10px",
-    padding: "10px",
-    borderRadius: "5px",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-  },
-  noTrainsMessage: {
-    textAlign: "center",
-    color: "#888",
-    fontSize: "16px",
-  },
+const trainCardStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  padding: "14px 16px",
+  background: "#f9fafb",
+  border: "1.5px solid #e5e7eb",
+  borderRadius: "10px",
 };
 
 export default SearchTrains;

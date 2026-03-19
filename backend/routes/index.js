@@ -18,6 +18,7 @@ router.post("/login", authController.login);
 
 // Staff
 router.post("/assignStaff", staffController.assignStaff);
+router.get("/staff", staffController.getAllStaff);
 
 // Promotion
 router.post("/promotePassenger", promotionController.promotePassenger);

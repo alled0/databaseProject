@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../style/Login.css";
+import API_URL from "../config";
 
 const Login = ({ onLogin }) => {
   const [form, setForm] = useState({
@@ -32,7 +33,7 @@ const Login = ({ onLogin }) => {
       setLoading(true);
       setError("");
 
-      const response = await fetch("http://localhost:4000/api/login", {
+      const response = await fetch(`${API_URL}/api/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -47,7 +48,7 @@ const Login = ({ onLogin }) => {
       }
 
       // Navigate based on role
-      onLogin(data.role); // Assume the backend responds with { role: "Passenger" } or { role: "Admin" }
+      onLogin(data.role, data.passengerID, data.email);
       if (data.role === "Passenger") {
         navigate("/searchtrain");
       } else if (data.role === "Admin") {
@@ -62,8 +63,10 @@ const Login = ({ onLogin }) => {
 
   return (
     <div className="container">
-      <h3 className="heading">Login</h3>
-      {error && <p className="error">{error}</p>}
+      <div className="login-logo">🚆</div>
+      <h3 className="heading">Saudi Railways</h3>
+      <p className="login-subtitle">Sign in to your account</p>
+      {error && <div className="alert alert-error">{error}</div>}
       <div className="form-group">
         <label className="label">Email:</label>
         <input

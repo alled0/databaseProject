@@ -12,38 +12,24 @@ exports.assignStaff = async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    // Validate TrainID
-    const [train] = await connection.query(
-      "SELECT TrainID FROM Train WHERE TrainID = ?",
-      [trainID]
-    );
+    const [train] = await connection.query("SELECT TrainID FROM Train WHERE TrainID = ?", [trainID]);
     if (train.length === 0) {
+      await connection.rollback();
       return res.status(400).json({ error: "Invalid Train ID." });
     }
 
-    // Validate StaffID
-    const [staff] = await connection.query(
-      "SELECT StaffID FROM Staff WHERE StaffID = ?",
-      [staffID]
-    );
+    const [staff] = await connection.query("SELECT StaffID FROM Staff WHERE StaffID = ?", [staffID]);
     if (staff.length === 0) {
+      await connection.rollback();
       return res.status(400).json({ error: "Invalid Staff ID." });
     }
 
-    // Map role to Stop_Sequence (dummy logic, may need changing)
-    const roleMap = { Driver: 1, Engineer: 2 };
-    const stopSequence = roleMap[role];
-    if (!stopSequence) {
-      return res.status(400).json({ error: "Invalid role. Allowed roles are Driver, Engineer." });
-    }
-
-    // Insert or update staff assignment (example logic - adjust as needed)
     const sql = `
-      INSERT INTO Schedule (TrainID, StationID, Stop_Sequence)
+      INSERT INTO StaffAssignment (StaffID, TrainID, Role)
       VALUES (?, ?, ?)
-      ON DUPLICATE KEY UPDATE Stop_Sequence = ?;
+      ON DUPLICATE KEY UPDATE Role = VALUES(Role)
     `;
-    await connection.query(sql, [trainID, staffID, stopSequence, stopSequence]);
+    await connection.query(sql, [staffID, trainID, role]);
 
     await connection.commit();
     res.status(200).json({ message: "Staff assigned successfully." });
@@ -53,5 +39,14 @@ exports.assignStaff = async (req, res) => {
     res.status(500).json({ error: "A server error occurred. Please try again later." });
   } finally {
     connection.release();
+  }
+};
+
+exports.getAllStaff = async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT StaffID, Name, Role FROM Staff ORDER BY Name");
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };

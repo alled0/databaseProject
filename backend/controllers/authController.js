@@ -13,7 +13,8 @@ exports.login = async (req, res) => {
     const [passengerRows] = await db.query(passengerQuery, [email, password]);
 
     if (passengerRows.length > 0) {
-      return res.json({ role: "Passenger" });
+      const p = passengerRows[0];
+      return res.json({ role: "Passenger", passengerID: p.PassengerID, email: p.email, name: p.Name });
     }
 
     // Check Staff table
@@ -21,7 +22,8 @@ exports.login = async (req, res) => {
     const [staffRows] = await db.query(staffQuery, [email, password]);
 
     if (staffRows.length > 0) {
-      return res.json({ role: "Admin" });
+      const s = staffRows[0];
+      return res.json({ role: "Admin", staffID: s.StaffID, name: s.Name });
     }
 
     return res.status(401).json({ message: "Invalid email or password." });

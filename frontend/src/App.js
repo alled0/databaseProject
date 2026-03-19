@@ -1,6 +1,6 @@
 //App.js
 import React, { useState } from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import SearchTrains from "./components/SearchTrains";
 import BookSeat from "./components/BookSeat";
@@ -11,42 +11,48 @@ import PromotePassenger from "./components/PromotePassenger";
 import Payment from "./components/Payment";
 import Reports from './components/Reports';
 
-
 function App() {
-  // Simulate user role (change between "Passenger" and "Admin" to test)
-  const [role, setRole] = useState("");
+  const [role, setRole] = useState(() => localStorage.getItem("role") || "");
+  const [passengerID, setPassengerID] = useState(() => localStorage.getItem("passengerID") || "");
+  const [userEmail, setUserEmail] = useState(() => localStorage.getItem("userEmail") || "");
 
-  const handleLogin = (userRole) => {
-    setRole(userRole); // Set role based on login
+  const handleLogin = (userRole, pid, email) => {
+    setRole(userRole);
+    setPassengerID(pid || "");
+    setUserEmail(email || "");
+    localStorage.setItem("role", userRole);
+    localStorage.setItem("passengerID", pid || "");
+    localStorage.setItem("userEmail", email || "");
   };
 
   const handleLogout = () => {
-    setRole(""); // Reset role on logout
+    setRole("");
+    setPassengerID("");
+    setUserEmail("");
+    localStorage.removeItem("role");
+    localStorage.removeItem("passengerID");
+    localStorage.removeItem("userEmail");
+  };
+
+  const requireRole = (allowedRole, element) => {
+    if (!role) return <Navigate to="/" replace />;
+    if (role !== allowedRole) return <Navigate to="/" replace />;
+    return element;
   };
 
   return (
     <Router>
       {role && <Navbar role={role} onLogout={handleLogout} />}
-      <div className="container" style={styles.container}>
+      <div style={styles.container}>
         <Routes>
           <Route path="/" element={<Login onLogin={handleLogin} />} />
-          {role === "Passenger" && (
-            <>
-              <Route path="/searchtrain" element={<SearchTrains />} />
-              <Route path="/book" element={<BookSeat />} />
-              <Route path="/payment/:reservationID" element={<Payment />} />
-              <Route path="/reports" element={<Reports role={role} />} />
-
-            </>
-          )}
-          {role === "Admin" && (
-  <>
-    <Route path="/manage-reservations" element={<ManageReservations />} />
-    <Route path="/assign-staff" element={<AssignStaff />} />
-    <Route path="/promote-passenger" element={<PromotePassenger />} />
-    <Route path="/reports" element={<Reports role={role} />} />
-  </>
-)}
+          <Route path="/searchtrain" element={requireRole("Passenger", <SearchTrains />)} />
+          <Route path="/book" element={requireRole("Passenger", <BookSeat email={userEmail} />)} />
+          <Route path="/payment/:reservationID" element={requireRole("Passenger", <Payment />)} />
+          <Route path="/reports" element={role ? <Reports role={role} passengerID={passengerID} /> : <Navigate to="/" replace />} />
+          <Route path="/manage-reservations" element={requireRole("Admin", <ManageReservations />)} />
+          <Route path="/assign-staff" element={requireRole("Admin", <AssignStaff />)} />
+          <Route path="/promote-passenger" element={requireRole("Admin", <PromotePassenger />)} />
         </Routes>
       </div>
     </Router>

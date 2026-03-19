@@ -101,13 +101,14 @@ exports.getLoadFactorByDate = async (req, res) => {
   const { date } = req.params;
   try {
     const sql = `
-      SELECT r.TrainID, 
-             COUNT(*) AS BookedSeats, 
-             150 AS TotalSeats, 
-             (COUNT(*) / 150)*100 AS AverageLoadFactor
+      SELECT r.TrainID, t.English_name,
+             COUNT(*) AS BookedSeats,
+             150 AS TotalSeats,
+             ROUND((COUNT(*) / 150) * 100, 2) AS AverageLoadFactor
       FROM Reservation r
+      JOIN Train t ON r.TrainID = t.TrainID
       WHERE r.Date = ?
-      GROUP BY r.TrainID
+      GROUP BY r.TrainID, t.English_name
     `;
     const [rows] = await db.query(sql, [date]);
     res.json(rows);
